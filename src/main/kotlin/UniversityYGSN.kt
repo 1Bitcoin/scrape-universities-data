@@ -2,17 +2,33 @@ import org.jetbrains.exposed.sql.Table
 
 object UniversityYGSN : Table("universityygsn") {
     var id = integer("id").autoIncrement().primaryKey()
-    var yearOfData = integer("sequel_id")
-    var universityName = varchar("universityName", 255).references(University.name)
-    var ysgnName = varchar("ysgnName", 255).references(ygsn.name)
-    var averageScoreBudgetEGE = double("averageScoreBudgetEGE")
-    var averageScorePaidEGE = double("averageScorePaidEGE")
-    var growthDeclineAverageScoreBudgetEGE = double("growthDeclineAverageScoreBudgetEGE")
-    var growthDeclineAverageScorePaidEGE = double("growthDeclineAverageScorePaidEGE")
-    var numbersBudgetStudents = integer("numbersBudgetStudents")
-    var numbersPaidStudents = integer("numbersPaidStudents")
-    var numbersStudentWithoutExam = integer("numbersStudentWithoutExam")
-    var averageScoreEGEWithoutIndividualAchievements = bool("averageScoreEGEWithoutIndividualAchievements")
+    var yearOfData = integer("yearofdata")
+    var universityName = varchar("universityname", 255)
+    var ysgnName = varchar("ysgnname", 255).references(ygsn.name)
+    var averageScoreBudgetEGE = double("averagescorebudgetege")
+    var averageScorePaidEGE = double("averagescorepaidege")
+    var growthDeclineAverageScoreBudgetEGE = double("growthdeclineaveragescorebudgetege")
+    var growthDeclineAverageScorePaidEGE = double("growthdeclineaveragescorepaidege")
+    var numbersBudgetStudents = integer("numbersbudgetstudents")
+    var numbersPaidStudents = integer("numberspaidstudents")
+    var numbersStudentWithoutExam = integer("numbersstudentwithoutexam")
+    var averageScoreEGEWithoutIndividualAchievements = bool("averagescoreegewithoutindividualachievements")
+    val costEducation = double("costeducation")
 }
 
+data class UniversityYGSNData(
+    var name: String = "",
+    var yearOfData: Int = 0,
+    var universityName: String = "",
+    var ysgnName: String = "",
+    var averageScoreBudgetEGE: Double = 0.0,
+    var averageScorePaidEGE: Double = 0.0,
+    var growthDeclineAverageScoreBudgetEGE: Double = 0.0,
+    var growthDeclineAverageScorePaidEGE: Double = 0.0,
+    var numbersBudgetStudents: Int = 0,
+    var numbersPaidStudents: Int = 0,
+    var numbersStudentWithoutExam: Int = 0,
+    var averageScoreEGEWithoutIndividualAchievements: Boolean = true,
+    var costEducation: Double? = null
+)
 
