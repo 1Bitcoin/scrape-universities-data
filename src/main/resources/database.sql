@@ -30,17 +30,16 @@ CREATE TABLE IF NOT EXISTS universityYGSN (
     id SERIAL PRIMARY KEY,
     yearOfData INT,
     universityName VARCHAR(255),
-    ysgnName VARCHAR(255),
+    ygsnName VARCHAR(255),
     averageScoreBudgetEGE NUMERIC,
     averageScorePaidEGE NUMERIC,
-    growthDeclineAverageScoreBudgetEGE NUMERIC,
-    growthDeclineAverageScorePaidEGE NUMERIC,
+    growthDeclineAverageScoreBudgetEGE NUMERIC DEFAULT NULL,
+    growthDeclineAverageScorePaidEGE NUMERIC DEFAULT NULL,
     numbersPaidStudents INT,
     numbersBudgetStudents INT,
     numbersStudentWithoutExam INT,
     averageScoreEGEWithoutIndividualAchievements BOOL,
-    costEducation NUMERIC DEFAULT NULL,
-    FOREIGN KEY (ysgnName) REFERENCES YGSN (name)
+    costEducation NUMERIC DEFAULT NULL
 );
 
 

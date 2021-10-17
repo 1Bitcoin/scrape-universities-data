@@ -11,86 +11,156 @@ fun main() {
     val dataAboutUniversity = setUniversityDataSource()
     val dataAboutUniversityYGSN = setUniversityYGSNDataSource()
 
-    val setYGSN = scrapeYGSN(dataAboutUniversity.universitiesNameForScrape)
-    scrapeUniversityYGSN(dataAboutUniversityYGSN, dataAboutUniversity.universitiesNameForScrape, setYGSN)
-
+    //val setYGSN = scrapeYGSN(dataAboutUniversity.universitiesNameForScrape, dataAboutUniversityYGSN)
     //scrapeUniversity(dataAboutUniversity)
 
+    scrapeUniversityYGSN(dataAboutUniversityYGSN, dataAboutUniversity.universitiesNameForScrape, getAllYGSN())
 }
+
+fun getAllYGSN(): Set<String> {
+    val set = mutableSetOf<String>()
+    transaction {
+        addLogger(StdOutSqlLogger)
+
+        for (ygsnRow in ygsn.selectAll()) {
+            set.add(ygsnRow[ygsn.name])
+        }
+    }
+    return set
+}
+
+fun deleteAllYGSN() {
+    val set = mutableSetOf<String>()
+    transaction {
+        addLogger(StdOutSqlLogger)
+        ygsn.deleteAll()
+    }
+}
+
 
 fun scrapeUniversityYGSN(dataAboutUniversityYGSN: DataAboutUniversityYGSN,
                          universitiesNameForScrape: MutableList<String>, setYGSN: Set<String>) {
 
     val mutableListUniversityYGSNData: MutableList<UniversityYGSNData> = mutableListOf()
 
-    for (nameYGSN in setYGSN) {
-        for (elem in dataAboutUniversityYGSN.dataOfYear) {
-            mutableListUniversityYGSNData.add(UniversityYGSNData(name = nameYGSN, yearOfData = elem.key))
-        }
-    }
-
-    for (i in mutableListUniversityYGSNData) {
-        println("$i")
-    }
-
-//    for (elem in dataAboutUniversity.dataOfYear) {
-//        val year = elem.key
-//        val budgetURL = elem.value.first
-//        val paidURL = elem.value.second
-//
-//        getBudgetUniversityData(budgetURL, dataAboutUniversity.universitiesNameForScrape,
-//            mutableListUniversitiesData, year)
-//
-//        getPaidUniversityData(paidURL, dataAboutUniversity.universitiesNameForScrape,
-//            mutableListUniversitiesData, year)
-//
-//    }
-//
-//    getPersonalityUniversityData(dataAboutUniversity.monitoring, mutableListUniversitiesData)
-//
-//    try {
-//        transaction {
-//            addLogger(StdOutSqlLogger)
-//
-//            for (university in mutableListUniversitiesData) {
-//                UniversityYGSN.insert {
-//
-//                }
-//            }
+//    for (nameYGSN in setYGSN) {
+//        for (elem in dataAboutUniversityYGSN.dataOfYear) {
+//            mutableListUniversityYGSNData.add(UniversityYGSNData(ygsnName = nameYGSN, yearOfData = elem.key))
 //        }
-//    } catch (exception: Exception) {
-//        println(exception.message)
 //    }
 
-//    for (item in mutableListUniversitiesData) {
-//        println("$item")
-//    }
+    for (i in mutableListUniversityYGSNData)
+        println("$i")
 
+    for (elem in dataAboutUniversityYGSN.dataOfYear) {
+        val year = elem.key
+        val budgetURL = elem.value.first
+        val paidURL = elem.value.second
 
+        getBudgetUniversityYGSNData(budgetURL, universitiesNameForScrape,
+            mutableListUniversityYGSNData, year)
+
+        getPaidUniversityYGSNData(paidURL, universitiesNameForScrape,
+            mutableListUniversityYGSNData, year)
+    }
+
+    try {
+        transaction {
+            addLogger(StdOutSqlLogger)
+
+            for (ygsn in mutableListUniversityYGSNData) {
+                UniversityYGSN.insert {
+                    it[yearOfData] = ygsn.yearOfData
+                    it[universityName] = ygsn.universityName
+                    it[ygsnName] = ygsn.ygsnName
+                    it[averageScoreBudgetEGE] = ygsn.averageScoreBudgetEGE
+                    it[averageScorePaidEGE] = ygsn.averageScorePaidEGE
+                    it[growthDeclineAverageScoreBudgetEGE] = ygsn.growthDeclineAverageScoreBudgetEGE
+                    it[growthDeclineAverageScorePaidEGE] = ygsn.growthDeclineAverageScorePaidEGE
+                    it[numbersBudgetStudents] = ygsn.numbersBudgetStudents
+                    it[numbersPaidStudents] = ygsn.numbersPaidStudents
+                    it[numbersStudentWithoutExam] = ygsn.numbersStudentWithoutExam
+                    it[averageScoreEGEWithoutIndividualAchievements] = ygsn.averageScoreEGEWithoutIndividualAchievements
+                    it[costEducation] = ygsn.costEducation
+                }
+            }
+        }
+    } catch (exception: Exception) {
+        println(exception.message)
+    }
 }
 
-fun getBudgetUniversityYGSNData(url: String, universitiesNameForScrape: MutableList<String>,
-                            mutableListUniversitiesData: MutableList<UniversityData>, year: Int) {
+fun getPaidUniversityYGSNData(url: String, universitiesNameForScrape: MutableList<String>,
+                                mutableListUniversityYGSNData: MutableList<UniversityYGSNData>, year: Int) {
 
     val doc = Jsoup.connect(url).get()
     val row = doc.select("table#transparence_t > tbody > tr")
 
     for (elem in row) {
-        val nameUniversity = elem.select("td")[0].text()
+        val nameUniversity = elem.select("td")[1].text()
         if (nameUniversity in universitiesNameForScrape) {
-            val averageScoreBudgetEGE = elem.select("td")[1].text().toDouble()
-            val growthDeclineAverageScoreBudgetEGE = elem.select("td")[2].text().toDouble()
-            val numbersBudgetStudents = elem.select("td")[3].text().toInt()
-            val numbersStudentWithoutExam = elem.select("td")[4].text().toInt()
-            val averageScoreEGEWithoutIndividualAchievements: Boolean = elem.select("td")[5].text() != "Да"
 
-            mutableListUniversitiesData.find { it.name == nameUniversity && it.yearOfData == year }?.let {
-                it.averageScoreBudgetEGE = averageScoreBudgetEGE
-                it.growthDeclineAverageScoreBudgetEGE = growthDeclineAverageScoreBudgetEGE
-                it.numbersBudgetStudents = numbersBudgetStudents
-                it.numbersStudentWithoutExam = numbersStudentWithoutExam
+            val nameYGSN = elem.select("td")[0].text()
+            val averageScorePaidEGE = elem.select("td")[2].text().toDouble()
+
+            val growthDeclineAverageScorePaidEGE: Double? = if (elem.select("td")[3].text().isNotEmpty()) {
+                elem.select("td")[3].text().toDouble()
+            } else {
+                null
+            }
+
+            val numbersPaidStudents = elem.select("td")[4].text().toInt()
+            val costEducation: Double? = if (elem.select("td")[5].text() == "нет данных") {
+                null
+            } else {
+                elem.select("td")[5].text().toDouble()
+            }
+
+            val averageScoreEGEWithoutIndividualAchievements: Boolean = elem.select("td")[8].text() == "Да"
+
+            mutableListUniversityYGSNData.find { it.ygsnName == nameYGSN && it.yearOfData == year &&
+                    it.universityName == nameUniversity }?.let {
+
+                it.averageScorePaidEGE = averageScorePaidEGE
+                it.growthDeclineAverageScorePaidEGE = growthDeclineAverageScorePaidEGE
+                it.numbersPaidStudents = numbersPaidStudents
+                it.costEducation = costEducation
                 it.averageScoreEGEWithoutIndividualAchievements = averageScoreEGEWithoutIndividualAchievements
             }
+        }
+    }
+}
+
+fun getBudgetUniversityYGSNData(url: String, universitiesNameForScrape: MutableList<String>,
+                                mutableListUniversityYGSNData: MutableList<UniversityYGSNData>, year: Int) {
+
+    val doc = Jsoup.connect(url).get()
+    val row = doc.select("table#transparence_t > tbody > tr")
+
+    for (elem in row) {
+        val nameUniversity = elem.select("td")[1].text()
+        if (nameUniversity in universitiesNameForScrape) {
+
+            val nameYGSN = elem.select("td")[0].text()
+            val averageScoreBudgetEGE = elem.select("td")[2].text().toDouble()
+
+            val growthDeclineAverageScoreBudgetEGE: Double? = if (elem.select("td")[3].text().isNotEmpty()) {
+                elem.select("td")[3].text().toDouble()
+            } else {
+                null
+            }
+
+            val numbersBudgetStudents = elem.select("td")[4].text().toInt()
+            val numbersStudentWithoutExam = elem.select("td")[5].text().toInt()
+
+            mutableListUniversityYGSNData.add(
+                UniversityYGSNData(
+                    yearOfData = year, universityName = nameUniversity,
+                    ygsnName = nameYGSN, averageScoreBudgetEGE = averageScoreBudgetEGE,
+                    growthDeclineAverageScoreBudgetEGE = growthDeclineAverageScoreBudgetEGE,
+                    numbersBudgetStudents = numbersBudgetStudents,
+                    numbersStudentWithoutExam = numbersStudentWithoutExam)
+            )
         }
     }
 }
@@ -146,10 +216,6 @@ fun scrapeUniversity(dataAboutUniversity: DataAboutUniversity) {
     } catch (exception: Exception) {
         println(exception.message)
     }
-
-//    for (item in mutableListUniversitiesData) {
-//        println("$item")
-//    }
 }
 
 fun getPersonalityUniversityData(monitoring: MutableList<Pair<String, String>>,
@@ -239,26 +305,37 @@ fun getPaidUniversityData(url: String, universitiesNameForScrape: MutableList<St
     }
 }
 
-fun scrapeYGSN(universitiesNameToFind: MutableList<String>): Set<String> {
-    val url = "https://ege.hse.ru/rating/2020/84025342/all/"
-    val set = mutableSetOf<String>()
+fun scrapeYGSN(universitiesNameToFind: MutableList<String>,
+               dataAboutUniversityYGSN: DataAboutUniversityYGSN): Set<String> {
 
-    val doc = Jsoup.connect(url).get()
-    val row = doc.select("table#transparence_t > tbody > tr")
+    var listOfSet = mutableListOf<Set<String>>()
 
-    for (elem in row) {
-        val speciality = elem.select("td")[0].text()
-        val currentUniversityName = elem.select("td")[1].text()
+    for (elem in dataAboutUniversityYGSN.dataOfYear) {
+        val url = elem.value.first
+        val set = mutableSetOf<String>()
 
-        if (currentUniversityName in universitiesNameToFind)
-            set.add(speciality.toString())
+        val doc = Jsoup.connect(url).get()
+        val row = doc.select("table#transparence_t > tbody > tr")
+
+        for (elem in row) {
+            val speciality = elem.select("td")[0].text()
+            val currentUniversityName = elem.select("td")[1].text()
+
+            if (currentUniversityName in universitiesNameToFind)
+                set.add(speciality.toString())
+        }
+
+        listOfSet.add(set)
     }
+
+    // Хард код для 3 множеств (3 года - 3 страницы анализа - 3 множества)
+    val result = listOfSet[0].intersect(listOfSet[1]).intersect(listOfSet[2])
 
     try {
         transaction {
             addLogger(StdOutSqlLogger)
 
-            for (speciality in set) {
+            for (speciality in result) {
                 ygsn.insert {
                     it[name] = speciality
                 }
@@ -269,7 +346,7 @@ fun scrapeYGSN(universitiesNameToFind: MutableList<String>): Set<String> {
         println(exception.message)
     }
 
-    return set
+    return result
 }
 
 fun setUniversityDataSource(): DataAboutUniversity {
