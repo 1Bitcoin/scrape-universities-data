@@ -2,7 +2,7 @@ import org.jetbrains.exposed.sql.Table
 
 object University : Table("university") {
     var id = integer("id").autoIncrement().primaryKey()
-    var name = varchar("name", 255)
+    var name = varchar("name", 400)
     var yearOfData = integer("yearofdata")
     var averageScoreBudgetEGE = double("averagescorebudgetege")
     var averageScorePaidEGE = double("averagescorepaidege")
@@ -17,6 +17,7 @@ object University : Table("university") {
     var financialAndEconomicActivities = double("financialandeconomicactivities")
     var salaryPPP = double("salaryppp")
     var additionalIndicator = double("additionalindicator")
+    var dataSource = varchar("datasource", 10)
 }
 
 data class UniversityData(
@@ -34,5 +35,6 @@ data class UniversityData(
     var internationalActivity: Double = 0.0,
     var financialAndEconomicActivities: Double = 0.0,
     var salaryPPP: Double = 0.0,
-    var additionalIndicator: Double = 0.0
+    var additionalIndicator: Double = 0.0,
+    var dataSource: String = ""
 )
