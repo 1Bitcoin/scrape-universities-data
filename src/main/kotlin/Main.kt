@@ -8,7 +8,8 @@ import java.io.File
 fun main() {
     Database.connect(
         "jdbc:postgresql://localhost:5432/postgres", driver = "org.postgresql.Driver",
-        user = "postgres", password = "qwerty")
+        user = "postgres", password = "qwerty"
+    )
 
 //
     val dataAboutUniversity = setUniversityDataSource()
@@ -19,7 +20,7 @@ fun main() {
     //scrapeUniversityHSE(dataAboutUniversity)
     //scrapeUniversityMIREA(dataAboutUniversity)
 
-    //scrapeUniversityYGSN(dataAboutUniversityYGSN, dataAboutUniversity.universitiesNameForScrape, getAllYGSN())
+    scrapeUniversityYGSN(dataAboutUniversityYGSN)
 }
 
 fun mySelect(mutableListUniversitiesData: MutableList<UniversityData>) {
@@ -28,8 +29,13 @@ fun mySelect(mutableListUniversitiesData: MutableList<UniversityData>) {
 
         val universities = University.select { (University.dataSource eq "MIREA") and (University.yearOfData eq 2020) }
 
-        for (i in universities){
-            mutableListUniversitiesData.add(UniversityData(name = i[University.name], yearOfData = i[University.yearOfData]))
+        for (i in universities) {
+            mutableListUniversitiesData.add(
+                UniversityData(
+                    name = i[University.name],
+                    yearOfData = i[University.yearOfData]
+                )
+            )
         }
     }
 }
@@ -63,10 +69,10 @@ fun scrapeUniversityMIREA(dataAboutUniversity: DataAboutUniversity) {
     insertUniversities(mutableListUniversitiesData)
 
     // Ищем и сопоставляем текущие названия с найденными в интернете
-    val matchedNames = findGeneralNameUniversities(mutableListUniversitiesData)
+    //val matchedNames = findGeneralNameUniversities(mutableListUniversitiesData)
 
     // Сохраняем полученные сопоставления
-    insertNameUniversitiesMIREA(matchedNames)
+    //insertNameUniversitiesMIREA(matchedNames)
 }
 
 fun scrapeUniversityHSE(dataAboutUniversity: DataAboutUniversity) {
@@ -85,10 +91,10 @@ fun scrapeUniversityHSE(dataAboutUniversity: DataAboutUniversity) {
     insertUniversities(mutableListUniversitiesData)
 
     // Ищем и сопоставляем текущие названия с найденными в интернете
-    val matchedNames = findGeneralNameUniversities(mutableListUniversitiesData)
+    //val matchedNames = findGeneralNameUniversities(mutableListUniversitiesData)
 
     // Сохраняем полученные сопоставления
-    insertNameUniversitiesHSE(matchedNames)
+    //insertNameUniversitiesHSE(matchedNames)
 }
 
 fun findGeneralNameUniversities(mutableListUniversitiesData: MutableList<UniversityData>): MutableList<NameUniversitiesData> {
@@ -115,8 +121,10 @@ fun findGeneralNameUniversities(mutableListUniversitiesData: MutableList<Univers
     return answer
 }
 
-fun getPersonalityUniversityData(monitoring: MutableList<String>,
-                                 mutableListUniversitiesData: MutableList<UniversityData>) {
+fun getPersonalityUniversityData(
+    monitoring: MutableList<String>,
+    mutableListUniversitiesData: MutableList<UniversityData>
+) {
 
     for (district in monitoring) {
         val districtPage = Jsoup.connect(district).get()
@@ -185,11 +193,18 @@ fun getBudgetUniversityData(url: String, mutableListUniversitiesData: MutableLis
         val numbersStudentWithoutExam = elem.select("td")[4].text().toInt()
         val averageScoreEGEWithoutIndividualAchievements: Boolean = elem.select("td")[5].text() != "Да"
 
-        mutableListUniversitiesData.add(UniversityData(name = nameUniversity, yearOfData = year,
-            averageScoreBudgetEGE = averageScoreBudgetEGE, growthDeclineAverageScoreBudgetEGE = growthDeclineAverageScoreBudgetEGE!!,
-            numbersBudgetStudents = numbersBudgetStudents, numbersStudentWithoutExam = numbersStudentWithoutExam,
-            averageScoreEGEWithoutIndividualAchievements = averageScoreEGEWithoutIndividualAchievements,
-            dataSource = "HSE"))
+        mutableListUniversitiesData.add(
+            UniversityData(
+                name = nameUniversity,
+                yearOfData = year,
+                averageScoreBudgetEGE = averageScoreBudgetEGE,
+                growthDeclineAverageScoreBudgetEGE = growthDeclineAverageScoreBudgetEGE!!,
+                numbersBudgetStudents = numbersBudgetStudents,
+                numbersStudentWithoutExam = numbersStudentWithoutExam,
+                averageScoreEGEWithoutIndividualAchievements = averageScoreEGEWithoutIndividualAchievements,
+                dataSource = "HSE"
+            )
+        )
     }
 }
 
@@ -223,8 +238,10 @@ fun getPaidUniversityData(url: String, mutableListUniversitiesData: MutableList<
     }
 }
 
-fun scrapeYGSN(universitiesNameToFind: MutableList<String>,
-               dataAboutUniversityYGSN: DataAboutUniversityYGSN): Set<String> {
+fun scrapeYGSN(
+    universitiesNameToFind: MutableList<String>,
+    dataAboutUniversityYGSN: DataAboutUniversityYGSN
+): Set<String> {
 
     var listOfSet = mutableListOf<Set<String>>()
 
@@ -267,8 +284,7 @@ fun scrapeYGSN(universitiesNameToFind: MutableList<String>,
     return result
 }
 
-fun scrapeUniversityYGSN(dataAboutUniversityYGSN: DataAboutUniversityYGSN,
-                         universitiesNameForScrape: MutableList<String>, setYGSN: Set<String>) {
+fun scrapeUniversityYGSN(dataAboutUniversityYGSN: DataAboutUniversityYGSN) {
 
     val mutableListUniversityYGSNData: MutableList<UniversityYGSNData> = mutableListOf()
 
@@ -278,19 +294,17 @@ fun scrapeUniversityYGSN(dataAboutUniversityYGSN: DataAboutUniversityYGSN,
 //        }
 //    }
 
-    for (i in mutableListUniversityYGSNData)
-        println("$i")
+//    for (i in mutableListUniversityYGSNData)
+//        println("$i")
 
     for (elem in dataAboutUniversityYGSN.dataOfYear) {
         val year = elem.key
         val budgetURL = elem.value.first
         val paidURL = elem.value.second
 
-        getBudgetUniversityYGSNData(budgetURL, universitiesNameForScrape,
-            mutableListUniversityYGSNData, year)
+        getBudgetUniversityYGSNData(budgetURL, mutableListUniversityYGSNData, year)
 
-        getPaidUniversityYGSNData(paidURL, universitiesNameForScrape,
-            mutableListUniversityYGSNData, year)
+        getPaidUniversityYGSNData(paidURL, mutableListUniversityYGSNData, year)
     }
 
     try {
@@ -319,15 +333,16 @@ fun scrapeUniversityYGSN(dataAboutUniversityYGSN: DataAboutUniversityYGSN,
     }
 }
 
-fun getPaidUniversityYGSNData(url: String, universitiesNameForScrape: MutableList<String>,
-                              mutableListUniversityYGSNData: MutableList<UniversityYGSNData>, year: Int) {
+fun getPaidUniversityYGSNData(url: String, mutableListUniversityYGSNData: MutableList<UniversityYGSNData>, year: Int) {
 
-    val doc = Jsoup.connect(url).get()
+    val file = File(url)
+    val doc: Document = Jsoup.parse(file, null)
+
     val row = doc.select("table#transparence_t > tbody > tr")
 
     for (elem in row) {
-        val nameUniversity = elem.select("td")[1].text()
-        if (nameUniversity in universitiesNameForScrape) {
+        try {
+            val nameUniversity = elem.select("td")[1].text()
 
             val nameYGSN = elem.select("td")[0].text()
             val averageScorePaidEGE = elem.select("td")[2].text().toDouble()
@@ -347,8 +362,10 @@ fun getPaidUniversityYGSNData(url: String, universitiesNameForScrape: MutableLis
 
             val averageScoreEGEWithoutIndividualAchievements: Boolean = elem.select("td")[8].text() == "Да"
 
-            mutableListUniversityYGSNData.find { it.ygsnName == nameYGSN && it.yearOfData == year &&
-                    it.universityName == nameUniversity }?.let {
+            mutableListUniversityYGSNData.find {
+                it.ygsnName == nameYGSN && it.yearOfData == year &&
+                        it.universityName == nameUniversity
+            }?.let {
 
                 it.averageScorePaidEGE = averageScorePaidEGE
                 it.growthDeclineAverageScorePaidEGE = growthDeclineAverageScorePaidEGE
@@ -356,22 +373,30 @@ fun getPaidUniversityYGSNData(url: String, universitiesNameForScrape: MutableLis
                 it.costEducation = costEducation
                 it.averageScoreEGEWithoutIndividualAchievements = averageScoreEGEWithoutIndividualAchievements
             }
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
     }
 }
 
-fun getBudgetUniversityYGSNData(url: String, universitiesNameForScrape: MutableList<String>,
-                                mutableListUniversityYGSNData: MutableList<UniversityYGSNData>, year: Int) {
+fun getBudgetUniversityYGSNData(url: String, mutableListUniversityYGSNData: MutableList<UniversityYGSNData>, year: Int) {
 
-    val doc = Jsoup.connect(url).get()
+    val file = File(url)
+    val doc: Document = Jsoup.parse(file, null)
+
     val row = doc.select("table#transparence_t > tbody > tr")
 
     for (elem in row) {
-        val nameUniversity = elem.select("td")[1].text()
-        if (nameUniversity in universitiesNameForScrape) {
+        try {
+            val nameUniversity = elem.select("td")[1].text()
 
             val nameYGSN = elem.select("td")[0].text()
-            val averageScoreBudgetEGE = elem.select("td")[2].text().toDouble()
+
+            val averageScoreBudgetEGE: Double? = if (elem.select("td")[2].text().isNotEmpty()) {
+                elem.select("td")[2].text().toDouble()
+            } else {
+                null
+            }
 
             val growthDeclineAverageScoreBudgetEGE: Double? = if (elem.select("td")[3].text().isNotEmpty()) {
                 elem.select("td")[3].text().toDouble()
@@ -379,8 +404,17 @@ fun getBudgetUniversityYGSNData(url: String, universitiesNameForScrape: MutableL
                 null
             }
 
-            val numbersBudgetStudents = elem.select("td")[4].text().toInt()
-            val numbersStudentWithoutExam = elem.select("td")[5].text().toInt()
+            val numbersBudgetStudents: Int? = if (elem.select("td")[4].text().isNotEmpty()) {
+                elem.select("td")[4].text().toInt()
+            } else {
+                null
+            }
+
+            val numbersStudentWithoutExam: Int? = if (elem.select("td")[5].text().isNotEmpty()) {
+                elem.select("td")[5].text().toInt()
+            } else {
+                null
+            }
 
             mutableListUniversityYGSNData.add(
                 UniversityYGSNData(
@@ -388,8 +422,12 @@ fun getBudgetUniversityYGSNData(url: String, universitiesNameForScrape: MutableL
                     ygsnName = nameYGSN, averageScoreBudgetEGE = averageScoreBudgetEGE,
                     growthDeclineAverageScoreBudgetEGE = growthDeclineAverageScoreBudgetEGE,
                     numbersBudgetStudents = numbersBudgetStudents,
-                    numbersStudentWithoutExam = numbersStudentWithoutExam)
+                    numbersStudentWithoutExam = numbersStudentWithoutExam
+                )
             )
+
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
     }
 }
@@ -410,7 +448,8 @@ fun insertUniversities(mutableListUniversitiesData: MutableList<UniversityData>)
                     it[numbersBudgetStudents] = university.numbersBudgetStudents
                     it[numbersPaidStudents] = university.numbersPaidStudents
                     it[numbersStudentWithoutExam] = university.numbersStudentWithoutExam
-                    it[averageScoreEGEWithoutIndividualAchievements] = university.averageScoreEGEWithoutIndividualAchievements
+                    it[averageScoreEGEWithoutIndividualAchievements] =
+                        university.averageScoreEGEWithoutIndividualAchievements
                     it[researchActivities] = university.researchActivities
                     it[internationalActivity] = university.internationalActivity
                     it[financialAndEconomicActivities] = university.financialAndEconomicActivities
@@ -462,9 +501,9 @@ fun insertNameUniversitiesMIREA(mutableListNameUniversitiesData: MutableList<Nam
 fun setUniversityDataSource(): DataAboutUniversity {
     return DataAboutUniversity(
         mapOf(
-            2020 to Pair("БюджетВУЗ2020.html", "ПлаткаВУЗ2020.html"),
-            2019 to Pair("БюджетВУЗ2019.html", "ПлаткаВУЗ2019.html"),
-            2018 to Pair("БюджетВУЗ2018.html", "ПлаткаВУЗ2018.html")
+            2020 to Pair("hse-universities/БюджетВУЗ2020.html", "hse-universities/ПлаткаВУЗ2020.html"),
+            2019 to Pair("hse-universities/БюджетВУЗ2019.html", "hse-universities/ПлаткаВУЗ2019.html"),
+            2018 to Pair("hse-universities/БюджетВУЗ2018.html", "hse-universities/ПлаткаВУЗ2018.html")
         ),
 
         mutableListOf(
@@ -484,16 +523,18 @@ fun setUniversityYGSNDataSource(): DataAboutUniversityYGSN {
     return DataAboutUniversityYGSN(
         mapOf(
             2020 to Pair(
-                "https://ege.hse.ru/rating/2020/84025342/all/",
-                "https://ege.hse.ru/rating/2020/84025368/all/"
+                "hse-ygsn/БюджетУГСН2020.html",
+                "hse-ygsn/ПлаткаУГСН2020.html"
             ),
 
             2019 to Pair(
-                "https://ege.hse.ru/rating/2019/81058583/all/?rlist=&ptype=0&glist=0&vuz-abiturients-budget-order=ge&vuz-abiturients-budget-val=10",
-                "https://ege.hse.ru/rating/2019/81058609/all/?rlist=&uplist=&glist=0&vuz-abiturients-paid-order=ge&vuz-abiturients-paid-val=10&price-order=ge&price-val="
+                "hse-ygsn/БюджетУГСН2019.html",
+                "hse-ygsn/ПлаткаУГСН2019.html"
             ),
 
-            2018 to Pair("https://ege.hse.ru/rating/2018/75767645/all/", "https://ege.hse.ru/rating/2018/77479782/all/")
+            2018 to Pair(
+                "hse-ygsn/БюджетУГСН2018.html",
+                "hse-ygsn/ПлаткаУГСН2018.html")
         )
     )
 }
