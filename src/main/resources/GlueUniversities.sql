@@ -66,7 +66,7 @@ select glue_universities.university, ygsn_info.ygsn_name, glue_universities.data
        glue_universities.numbers_paid_students, glue_universities.numbers_student_without_exam,
        ygsn_info.average_score_budget_ege_ygsn, ygsn_info.average_score_paid_ege_ygsn,
        ygsn_info.growth_score_budget_ege_ygsn, ygsn_info.growth_score_paid_ege_ygsn,
-       ygsn_info.numbers_budget_students_ygsn, ygsn_info.numbers_paid_students_ygsn,
+       ygsn_info.numbers_paid_students_ygsn, ygsn_info.numbers_budget_students_ygsn,
        ygsn_info.numbers_student_without_exam_ygsn, ygsn_info.cost_education_ygsn
 from glue_universities
     join ygsn_info on glue_universities.university = ygsn_info.university and glue_universities.data = ygsn_info.data;
