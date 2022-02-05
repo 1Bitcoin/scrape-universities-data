@@ -18,6 +18,11 @@ fun main() {
     scrapeUniversityMIREA(dataAboutUniversity)
 
     //scrapeUniversityYGSN(dataAboutUniversityYGSN)
+
+//    for (jsonObject in jsonArray) {
+//        val a = jsonObject.asJsonObject.get("ygsnName").toString()
+//        println(a.replace("\"", "").equals("Музыкальное искусство"))
+//    }
 }
 
 

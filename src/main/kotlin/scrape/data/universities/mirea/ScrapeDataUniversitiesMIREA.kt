@@ -184,21 +184,6 @@ fun getPersonalityUniversityData(
                                 while (tableYGSN.hasNext() && !tableYGSN.next().select("td").text().contains("Минобрнауки России от 12.09.2013")) {}
                             }
 
-                            //    val testJson = "{ Музыкальное искусство: { contingentStudents: 302.0, dolyaContingenta: 100.0 } }"
-                            //    val answer = JSONObject("""{"name":"test name", "age":25}""")
-
-                            //    val json = "{ [\"Музыкальное искусство\": [ { \"contingentStudents\": 302.0 }, {\"dolyaContingenta\": 100.0 } ] ] }"
-                            //    val jsonObject = JsonParser().parse(json).asJsonArray
-
-                            //    val testJson = "[{ \"ygsnName\": \"Музыкальное искусство\", \"contingentStudents\": \"302.0\", \"dolyaContingenta\": \"100.0\"} ]"
-                            //
-                            //    val jsonArray= JsonParser().parse(testJson).asJsonArray
-                            //
-                            //    for (jsonObject in jsonArray) {
-                            //        val a = jsonObject.asJsonObject.get("ygsnName").toString()
-                            //        println(a.replace("\"", "").equals("Музыкальное искусство"))
-                            //    }
-
                             var total = 0
                             // Если вуз не нашли, нет смысла сюда заходить
                             if (hseNameUniversity.isNotEmpty()) {
