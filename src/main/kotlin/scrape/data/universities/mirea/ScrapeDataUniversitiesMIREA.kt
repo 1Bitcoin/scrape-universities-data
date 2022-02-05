@@ -261,7 +261,7 @@ fun getPersonalityUniversityData(
                                                 .toDouble()
 
                                             json  += "{ \"ygsnName\": \"$ygsn\", \"contingentStudents\": \"$contingent\", " +
-                                                    "\"dolyaContingenta\": \"dolyaContingenta\", " +
+                                                    "\"dolyaContingenta\": \"$dolyaContingenta\", " +
                                                     "\"numbersBudgetStudents\": \"$correctNumbersBudgetStudents\", " +
                                                     "\"averageScoreBudgetEGE\": \"$correctAverageScoreBudgetEGE\" }, "
                                         }
