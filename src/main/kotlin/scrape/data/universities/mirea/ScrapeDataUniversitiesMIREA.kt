@@ -1,9 +1,15 @@
 package scrape.data.universities.mirea
 
+import com.google.gson.JsonParser
 import datasource.vo.DataAboutUniversity
 import dto.UniversityData
+import org.jetbrains.database.getHSEUniversityName
 import org.jetbrains.database.insertUniversities
+import org.jetbrains.database.selectUniversityYGSNInfo
 import org.jsoup.Jsoup
+import parser.parseCSVFileWithDolyaYGSN
+import java.sql.QueryExecutor
+import kotlin.math.roundToInt
 
 fun scrapeUniversityMIREA(dataAboutUniversity: DataAboutUniversity) {
     val mutableListUniversitiesData: MutableList<UniversityData> = mutableListOf()
@@ -24,7 +30,8 @@ fun getPersonalityUniversityData(
     monitoring: MutableList<String>,
     mutableListUniversitiesData: MutableList<UniversityData>
 ) {
-    var yearOfMonitoring = arrayListOf(2016, 2017, 2018, 2019, 2020, 2021)
+    val parsedDolyaYGSNMutableMap = parseCSVFileWithDolyaYGSN()
+    val yearOfMonitoring = arrayListOf(2021, 2020, 2019, 2018, 2017, 2016)
 
     // Идем по округам
     for (district in monitoring) {
@@ -32,8 +39,14 @@ fun getPersonalityUniversityData(
         val universitiesURL = districtPage.select("table[class=an] > tbody")
 
         // Идем по универам
-        for (item in universitiesURL.select("tr")) {
-            val id = item.select("td")[1].select("a").attr("href")
+        for (university in universitiesURL.select("tr")) {
+            val id = university.select("td")[1].select("a").attr("href")
+
+            // Имя универа в 2021 году - его установим для всех остальных годов
+            var actualUniversityName = ""
+
+            // Имя этого вуза на сайте вышки
+            var hseNameUniversity = ""
 
             // Идем по годам универа
             var countAddedUniversities = 0
@@ -51,9 +64,20 @@ fun getPersonalityUniversityData(
                         .select("a")
                         .text()
 
-                    val nameUniversity = universityPage.select("table#info > tbody > tr > td")[1]
+                    var nameUniversity = universityPage.select("table#info > tbody > tr > td")[1]
                         .text()
                         .replace('"', ' ')
+
+                    // Запоминаем название в 2021 году и проставляем такое же в остальные года
+                    if (year == 2021) {
+                        // Получаем название вуза на сайте вышки (т.к инфу будет брать оттуда)
+                        hseNameUniversity = getHSEUniversityName(nameUniversity)
+
+                        actualUniversityName = nameUniversity
+
+                    } else {
+                        nameUniversity = actualUniversityName
+                    }
 
                     // Если таблица существует
                     if (universityPage.select("table#analis_dop > tbody").size > 0) {
@@ -85,7 +109,7 @@ fun getPersonalityUniversityData(
                             .replace(" ", "")
                             .toDouble()
 
-                        println("$averageAllStudentsEGE $dolyaOfflineEducation")
+                        //println("$averageAllStudentsEGE $dolyaOfflineEducation")
 
                         val napdeTable = universityPage.select("table[class=napde] > tbody")
                         //println(napdeTable)
@@ -175,58 +199,120 @@ fun getPersonalityUniversityData(
                             //        println(a.replace("\"", "").equals("Музыкальное искусство"))
                             //    }
 
-                            var json = "{ "
-                            while (tableYGSN.hasNext()) {
-                                val element = tableYGSN.next().select("td")
+                            var total = 0
+                            // Если вуз не нашли, нет смысла сюда заходить
+                            if (hseNameUniversity.isNotEmpty()) {
 
-                                val ygsn = element[0].text().drop(11)
-                                val contingent = element[1].text().replace(" ", "").replace(",", ".").toDouble()
+                                // Идем по списку УГСН вуза
+                                var json = ""
 
-                                val dolyaContingenta = element[2].text()
-                                    .replace(" ", "")
-                                    .replace(",", ".")
-                                    .replace("%", "")
-                                    .toDouble()
+                                while (tableYGSN.hasNext()) {
+                                    val element = tableYGSN.next().select("td")
 
-                                println("$contingent $dolyaContingenta")
-                                json += "$ygsn: { contingentStudents: $contingent, dolyaContingenta: $dolyaContingenta }, "
-                            }
+                                    var correctNumbersBudgetStudents = 0
+                                    var correctAverageScoreBudgetEGE = 0.0
 
-                            var resultJson = json.dropLast(2)
-                            resultJson += " }"
+                                    val ygsn = element[0].text()
+                                    val codeYGSN = ygsn.take(2)
 
-                            listOfYGSN.add(resultJson)
+                                    // Ищем в какие группы входит УГСН
+                                    val tableGroupDolyaYGSN: MutableMap<String, Double> = mutableMapOf()
 
-                            println(listOfYGSN)
+                                    for (group in parsedDolyaYGSNMutableMap) {
+                                        if (group.value.containsKey(codeYGSN)) {
+                                            val nameGroup = group.key
+                                            val dolyaYGSN = group.value.get(codeYGSN)
 
-                            // change year
-                            val university = UniversityData(
-                                name = nameUniversity,
-                                region = region,
-                                hostel = hostel,
-                                yearOfData = year - 1,
-                                averageAllStudentsEGE = averageAllStudentsEGE,
-                                dolyaOfflineEducation = dolyaOfflineEducation,
-                                averageBudgetEGE = averageBudgetEGE,
-                                averageBudgetWithoutSpecialRightsEGE = averageBudgetWithoutSpecialRightsEGE,
-                                averagedMinimalEGE = averagedMinimalEGE,
-                                countVserosBVI = countVserosBVI,
-                                countOlimpBVI = countOlimpBVI,
-                                countCelevoiPriem = countCelevoiPriem,
-                                dolyaCelevoiPriem = dolyaCelevoiPriem,
-                                ydelniyVesInostrancyWithoutSNG = ydelniyVesInostrancyWithoutSNG,
-                                ydelniyVesInostrancySNG = ydelniyVesInostrancySNG,
-                                jsonYGSN = listOfYGSN.toString(),
-                                dataSource = "MIREA"
-                            )
+                                            tableGroupDolyaYGSN.put(nameGroup, dolyaYGSN!!)
+                                        }
+                                    }
 
-                            mutableListUniversitiesData.add(university)
-                            countAddedUniversities++
+                                    // Получаем кол-во людей на бюджете и средний балл по УГСН
+                                    val dataAboutYGSN: MutableList<Triple<Int, Double, Double>> = mutableListOf()
 
-                            // Проставляем прошлым годам актуальное название данного универа (актуальное - это которое в 2021)
-                            if (year == 2021) {
-                                for (i in 2..countAddedUniversities) {
-                                    mutableListUniversitiesData[mutableListUniversitiesData.size - i].name = nameUniversity
+                                    for (item in tableGroupDolyaYGSN) {
+                                        // Получаем и сохраняем информацию об УГСН (с сайта вышки)
+                                        val triple = selectUniversityYGSNInfo(hseNameUniversity, year - 1, item.key, item.value)
+
+                                        if (triple != null)
+                                            dataAboutYGSN.add(triple)
+                                    }
+
+                                    // Вычисляем кол-во людей на бюджете и средний балл по УГСН
+
+                                    // Если что-то нашлось - иначе не считаем
+                                    if (dataAboutYGSN.isNotEmpty()) {
+                                        for (triple in dataAboutYGSN) {
+                                            // Кол-во студентов этого УГСН на текущей итерации
+                                            val numbersBudgetStudents = (triple.first * triple.third).toInt()
+
+                                            // Считаем общее кол-во студентов этого УГСН
+                                            correctNumbersBudgetStudents += numbersBudgetStudents
+
+                                            // Средний балл для этого УГСН (еще нужно разделить на кол-во студентов в этом УГСН)
+                                            correctAverageScoreBudgetEGE += triple.second * numbersBudgetStudents
+
+                                            // Считаем общее кол-во студентов по вузу за год
+                                            total += correctNumbersBudgetStudents
+                                        }
+
+                                        // Посчитали средний балл
+                                        correctAverageScoreBudgetEGE /= correctNumbersBudgetStudents
+
+                                        // Округляем до 2 знаков
+                                        if (!correctAverageScoreBudgetEGE.isNaN()) {
+                                            correctAverageScoreBudgetEGE = 100 * correctAverageScoreBudgetEGE.roundToInt() / 100.0
+
+                                            val contingent = element[1]
+                                                .text()
+                                                .replace(" ", "")
+                                                .replace(",", ".")
+                                                .toDouble()
+
+                                            val dolyaContingenta = element[2].text()
+                                                .replace(" ", "")
+                                                .replace(",", ".")
+                                                .replace("%", "")
+                                                .toDouble()
+
+                                            json  += "{ \"ygsnName\": \"$ygsn\", \"contingentStudents\": \"$contingent\", " +
+                                                    "\"dolyaContingenta\": \"dolyaContingenta\", " +
+                                                    "\"numbersBudgetStudents\": \"$correctNumbersBudgetStudents\", " +
+                                                    "\"averageScoreBudgetEGE\": \"$correctAverageScoreBudgetEGE\" }, "
+                                        }
+                                    }
+                                }
+
+                                if (json.isNotEmpty()) {
+                                    val resultJson = json.dropLast(2)
+                                    println("total: $total")
+
+                                    listOfYGSN.add(resultJson)
+
+                                    val universityData = UniversityData(
+                                        name = nameUniversity,
+                                        region = region,
+                                        hostel = hostel,
+                                        yearOfData = year - 1,
+                                        averageAllStudentsEGE = averageAllStudentsEGE,
+                                        dolyaOfflineEducation = dolyaOfflineEducation,
+                                        averageBudgetEGE = averageBudgetEGE,
+                                        averageBudgetWithoutSpecialRightsEGE = averageBudgetWithoutSpecialRightsEGE,
+                                        averagedMinimalEGE = averagedMinimalEGE,
+                                        countVserosBVI = countVserosBVI,
+                                        countOlimpBVI = countOlimpBVI,
+                                        countCelevoiPriem = countCelevoiPriem,
+                                        dolyaCelevoiPriem = dolyaCelevoiPriem,
+                                        ydelniyVesInostrancyWithoutSNG = ydelniyVesInostrancyWithoutSNG,
+                                        ydelniyVesInostrancySNG = ydelniyVesInostrancySNG,
+                                        jsonYGSN = listOfYGSN.toString(),
+                                        dataSource = "MIREA"
+                                    )
+
+                                    println(universityData)
+
+                                    mutableListUniversitiesData.add(universityData)
+                                    countAddedUniversities++
                                 }
                             }
                         }
