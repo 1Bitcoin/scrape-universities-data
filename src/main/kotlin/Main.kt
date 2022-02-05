@@ -1,9 +1,9 @@
+import com.github.doyaaaaaken.kotlincsv.dsl.csvReader
+import com.google.gson.JsonParser
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
-import org.jsoup.nodes.Element
-import org.jsoup.select.Elements
 import java.io.File
 import java.sql.DriverManager
 
@@ -25,21 +25,91 @@ fun main() {
     val dataAboutUniversity = setUniversityDataSource()
     val dataAboutUniversityYGSN = setUniversityYGSNDataSource()
 
-    connection.use { conn ->
-        val prepareStatement = connection.prepareStatement("select * from university")
+//    connection.use { conn ->
+//        val prepareStatement = connection.prepareStatement("select * from university where id = 3148")
+//
+//        var resultSet = prepareStatement.executeQuery()
+//
+//        resultSet.use {
+//            while (it.next())
+//            println(it.getString("jsonygsn"))
+//
+//        }
+//    }
 
-        var resultSet = prepareStatement.executeQuery()
+    val parsedDolyaYGSNMutableMap = parseCSVFileWithDolyaYGSN()
 
-        resultSet.use {
-            while (it.next())
-            println(it.getString("name"))
-
-        }
+    for (item in parsedDolyaYGSNMutableMap) {
+        println(item)
     }
+
+//    val testJson = "{ Музыкальное искусство: { contingentStudents: 302.0, dolyaContingenta: 100.0 } }"
+//    val answer = JSONObject("""{"name":"test name", "age":25}""")
+
+//    val json = "{ [\"Музыкальное искусство\": [ { \"contingentStudents\": 302.0 }, {\"dolyaContingenta\": 100.0 } ] ] }"
+//    val jsonObject = JsonParser().parse(json).asJsonArray
+
+//    val testJson = "[{ \"ygsnName\": \"Музыкальное искусство\", \"contingentStudents\": \"302.0\", \"dolyaContingenta\": \"100.0\"} ]"
+//
+//    val jsonArray= JsonParser().parse(testJson).asJsonArray
+//
+//    for (jsonObject in jsonArray) {
+//        val a = jsonObject.asJsonObject.get("ygsnName").toString()
+//        println(a.replace("\"", "").equals("Музыкальное искусство"))
+//    }
+
 
     //scrapeUniversityMIREA(dataAboutUniversity)
 
     //scrapeUniversityYGSN(dataAboutUniversityYGSN)
+}
+
+fun parseCSVFileWithDolyaYGSN(): MutableMap<String, Map<String, Double>> {
+    val tsvReader = csvReader {
+        charset = "windows-1251"
+    }
+
+    val map: MutableMap<String, Map<String, Double>> = mutableMapOf()
+
+    tsvReader.open("DolyaYGSN.csv") {
+        var elem = readNext()
+
+        // Цикл по каждой строке файла
+        while (!elem.isNullOrEmpty()) {
+            val refactoredElem = elem
+                .toString()
+                .replace("\"", "")
+                .replace("[", "")
+                .replace("]", "")
+
+            // Убрали ненужные символы и получили массив с разделенными элементами
+            val newArray = refactoredElem.split("|").toTypedArray()
+
+            val nameYGSN = newArray[0]
+            val dolyaYGSNMap = mutableMapOf<String, Double>()
+
+            // Цикл по элементам вида 24:0.67, где 24 - номер УГСН, а 0.67 - доля этого УГСН в данной группе
+            for (item in newArray.drop(1)) {
+                val dolyaYGSN = item.split(":").toTypedArray()
+
+                val numberYGSN = dolyaYGSN[0]
+                val valueDolya = dolyaYGSN[1].toDouble()
+                dolyaYGSNMap.put(numberYGSN, valueDolya)
+
+            }
+            map.put(nameYGSN, dolyaYGSNMap)
+
+            elem = readNext()
+        }
+    }
+
+//    for (item in map) {
+//        if (item.value.containsKey("24")) {
+//            println("Есть, значение: ${item.value["24"]}")
+//        }
+//    }
+
+    return map
 }
 
 //fun mySelect(mutableListUniversitiesData: MutableList<UniversityData>) {
