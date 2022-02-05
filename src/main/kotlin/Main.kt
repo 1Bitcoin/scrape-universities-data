@@ -2,7 +2,10 @@ import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
+import org.jsoup.nodes.Element
+import org.jsoup.select.Elements
 import java.io.File
+import java.sql.DriverManager
 
 
 fun main() {
@@ -11,34 +14,50 @@ fun main() {
         user = "postgres", password = "qwerty"
     )
 
-//
+    val connection = DriverManager.getConnection(
+        "jdbc:postgresql://localhost:5432/postgres",
+        "postgres",
+        "qwerty"
+    )
+
+        //scrapeUniversityHSE(dataAboutUniversity)
+
     val dataAboutUniversity = setUniversityDataSource()
     val dataAboutUniversityYGSN = setUniversityYGSNDataSource()
 
-    //val setYGSN = scrapeYGSN(dataAboutUniversity.universitiesNameForScrape, dataAboutUniversityYGSN)
+    connection.use { conn ->
+        val prepareStatement = connection.prepareStatement("select * from university")
 
-    //scrapeUniversityHSE(dataAboutUniversity)
-    //scrapeUniversityMIREA(dataAboutUniversity)
+        var resultSet = prepareStatement.executeQuery()
 
-    scrapeUniversityYGSN(dataAboutUniversityYGSN)
-}
+        resultSet.use {
+            while (it.next())
+            println(it.getString("name"))
 
-fun mySelect(mutableListUniversitiesData: MutableList<UniversityData>) {
-    transaction {
-        addLogger(StdOutSqlLogger)
-
-        val universities = University.select { (University.dataSource eq "MIREA") and (University.yearOfData eq 2020) }
-
-        for (i in universities) {
-            mutableListUniversitiesData.add(
-                UniversityData(
-                    name = i[University.name],
-                    yearOfData = i[University.yearOfData]
-                )
-            )
         }
     }
+
+    //scrapeUniversityMIREA(dataAboutUniversity)
+
+    //scrapeUniversityYGSN(dataAboutUniversityYGSN)
 }
+
+//fun mySelect(mutableListUniversitiesData: MutableList<UniversityData>) {
+//    transaction {
+//        addLogger(StdOutSqlLogger)
+//
+//        val universities = University.select { (University.dataSource eq "MIREA") and (University.yearOfData eq 2020) }
+//
+//        for (i in universities) {
+//            mutableListUniversitiesData.add(
+//                UniversityData(
+//                    name = i[University.name],
+//                    yearOfData = i[University.yearOfData]
+//                )
+//            )
+//        }
+//    }
+//}
 
 fun getAllYGSN(): Set<String> {
     val set = mutableSetOf<String>()
@@ -82,13 +101,13 @@ fun scrapeUniversityHSE(dataAboutUniversity: DataAboutUniversity) {
         val year = elem.key
         val budgetURL = elem.value.first
         val paidURL = elem.value.second
-
-        getBudgetUniversityData(budgetURL, mutableListUniversitiesData, year)
-        getPaidUniversityData(paidURL, mutableListUniversitiesData, year)
+//
+//        getBudgetUniversityData(budgetURL, mutableListUniversitiesData, year)
+//        getPaidUniversityData(paidURL, mutableListUniversitiesData, year)
 
     }
     // Сохранили
-    insertUniversities(mutableListUniversitiesData)
+    //insertUniversities(mutableListUniversitiesData)
 
     // Ищем и сопоставляем текущие названия с найденными в интернете
     //val matchedNames = findGeneralNameUniversities(mutableListUniversitiesData)
@@ -125,177 +144,276 @@ fun getPersonalityUniversityData(
     monitoring: MutableList<String>,
     mutableListUniversitiesData: MutableList<UniversityData>
 ) {
+    var yearOfMonitoring = arrayListOf(2016, 2017, 2018, 2019, 2020, 2021)
 
+    // Идем по округам
     for (district in monitoring) {
         val districtPage = Jsoup.connect(district).get()
         val universitiesURL = districtPage.select("table[class=an] > tbody")
 
+        // Идем по универам
         for (item in universitiesURL.select("tr")) {
             val id = item.select("td")[1].select("a").attr("href")
-            var url = "https://monitoring.miccedu.ru/iam/2021/_vpo/$id"
 
-            val universityPage = Jsoup.connect(url).get()
-            val nameUniversity = universityPage.select("table#info > tbody > tr > td")[1]
-                .text()
-                .replace('"', ' ')
+            // Идем по годам универа
+            var countAddedUniversities = 0
+            for (year in yearOfMonitoring) {
+                val url = "https://monitoring.miccedu.ru/iam/$year/_vpo/$id"
 
-            val table = universityPage.select("table#result > tbody")
+                println(url)
 
-            // Если таблица не пустая
-            if (table.size > 0) {
-                // Идем по годам и сохраняем инфу
-                for (year in 2..5) {
-                    val university = UniversityData(name = nameUniversity, yearOfData = year + 2016)
+                val universityPage = Jsoup.connect(url).get()
 
-                    for (i in 1..5) {
-                        val characteristic = table.select("tr")[i].select("td")[year]
+                if (universityPage.select("table#info > tbody > tr").size > 0) {
+                    val region = universityPage
+                        .select("table#info > tbody > tr")[1]
+                        .select("td")[1]
+                        .select("a")
+                        .text()
+
+                    val nameUniversity = universityPage.select("table#info > tbody > tr > td")[1]
+                        .text()
+                        .replace('"', ' ')
+
+                    // Если таблица существует
+                    if (universityPage.select("table#analis_dop > tbody").size > 0) {
+                        val availabilityHostel = universityPage
+                            .select("table#analis_dop > tbody > tr")[49]
+                            .select("td")[3]
                             .text()
-                            .substringBefore('|')
                             .replace(" ", "")
-                            .replace("—", "-1")
-                            .replace(",", ".").toDouble()
+                            .toInt()
 
-                        when (i) {
-                            1 -> university.researchActivities = characteristic
-                            2 -> university.internationalActivity = characteristic
-                            3 -> university.financialAndEconomicActivities = characteristic
-                            4 -> university.salaryPPP = characteristic
-                            5 -> university.additionalIndicator = characteristic
+                        var hostel = false
+
+                        if (availabilityHostel != 0)
+                            hostel = true
+
+                        val averageAllStudentsEGE = universityPage
+                            .select("table#analis_dop > tbody > tr")[5]
+                            .select("td")[3]
+                            .text()
+                            .replace(",", ".")
+                            .replace(" ", "")
+                            .toDouble()
+
+                        val dolyaOfflineEducation = universityPage
+                            .select("table#analis_dop > tbody > tr")[6]
+                            .select("td")[3]
+                            .text()
+                            .replace(",", ".")
+                            .replace(" ", "")
+                            .toDouble()
+
+                        println("$averageAllStudentsEGE $dolyaOfflineEducation")
+
+                        val napdeTable = universityPage.select("table[class=napde] > tbody")
+                        //println(napdeTable)
+
+                        if (napdeTable.size > 0) {
+                            val averageBudgetEGE = napdeTable[0]
+                                .select("tr")[1]
+                                .select("td")[3]
+                                .text()
+                                .replace(",", ".")
+                                .replace(" ", "")
+                                .toDouble()
+
+                            val averageBudgetWithoutSpecialRightsEGE = napdeTable[0]
+                                .select("tr")[2]
+                                .select("td")[3]
+                                .text()
+                                .replace(",", ".")
+                                .replace(" ", "")
+                                .toDouble()
+
+                            val averagedMinimalEGE = napdeTable[0]
+                                .select("tr")[4]
+                                .select("td")[3]
+                                .text()
+                                .replace(",", ".")
+                                .replace(" ", "")
+                                .toDouble()
+
+                            val countVserosBVI = napdeTable[0].select("tr")[5].select("td")[3]
+                                .text().replace(" ", "").toInt()
+
+                            val countOlimpBVI = napdeTable[0].select("tr")[6].select("td")[3]
+                                .text().replace(" ", "").toInt()
+
+                            val countCelevoiPriem = napdeTable[0].select("tr")[7].select("td")[3]
+                                .text().replace(" ", "").toInt()
+
+                            val dolyaCelevoiPriem = napdeTable[0]
+                                .select("tr")[8]
+                                .select("td")[3]
+                                .text()
+                                .replace(",", ".")
+                                .replace(" ", "")
+                                .toDouble()
+
+                            val ydelniyVesInostrancyWithoutSNG = napdeTable[2]
+                                .select("tr")[1]
+                                .select("td")[3]
+                                .text()
+                                .replace(",", ".")
+                                .replace(" ", "")
+                                .toDouble()
+
+                            val ydelniyVesInostrancySNG = napdeTable[2]
+                                .select("tr")[2]
+                                .select("td")[3]
+                                .text()
+                                .replace(",", ".")
+                                .replace(" ", "")
+                                .toDouble()
+
+
+                            val tableYGSN = universityPage.select("table#analis_reg > tbody > tr").iterator()
+                            val listOfYGSN = mutableListOf<String>()
+
+                            // skit first element
+                            val firstElement = tableYGSN.next().select("td").text()
+
+                            // В предыдущих годах таблица была другой, необходимо пропустить строки
+                            if (firstElement.contains("по ОКСО")) { // Минобрнауки России от 12.09.2013
+                                while (tableYGSN.hasNext() && !tableYGSN.next().select("td").text().contains("Минобрнауки России от 12.09.2013")) {}
+                            }
+
+                            var json = "{ "
+                            while (tableYGSN.hasNext()) {
+                                val element = tableYGSN.next().select("td")
+
+                                val ygsn = element[0].text().drop(11)
+                                val contingent = element[1].text().replace(" ", "").replace(",", ".").toDouble()
+
+                                val dolyaContingenta = element[2].text()
+                                    .replace(" ", "")
+                                    .replace(",", ".")
+                                    .replace("%", "")
+                                    .toDouble()
+
+                                println("$contingent $dolyaContingenta")
+                                json += "$ygsn: { contingentStudents: $contingent, dolyaContingenta: $dolyaContingenta }, "
+                            }
+
+                            var resultJson = json.dropLast(2)
+                            resultJson += " }"
+
+                            listOfYGSN.add(resultJson)
+
+                            println(listOfYGSN)
+
+                            // change year
+                            val university = UniversityData(
+                                name = nameUniversity,
+                                region = region,
+                                hostel = hostel,
+                                yearOfData = year - 1,
+                                averageAllStudentsEGE = averageAllStudentsEGE,
+                                dolyaOfflineEducation = dolyaOfflineEducation,
+                                averageBudgetEGE = averageBudgetEGE,
+                                averageBudgetWithoutSpecialRightsEGE = averageBudgetWithoutSpecialRightsEGE,
+                                averagedMinimalEGE = averagedMinimalEGE,
+                                countVserosBVI = countVserosBVI,
+                                countOlimpBVI = countOlimpBVI,
+                                countCelevoiPriem = countCelevoiPriem,
+                                dolyaCelevoiPriem = dolyaCelevoiPriem,
+                                ydelniyVesInostrancyWithoutSNG = ydelniyVesInostrancyWithoutSNG,
+                                ydelniyVesInostrancySNG = ydelniyVesInostrancySNG,
+                                jsonYGSN = listOfYGSN.toString(),
+                                dataSource = "MIREA"
+                            )
+
+                            mutableListUniversitiesData.add(university)
+                            countAddedUniversities++
+
+                            // Проставляем прошлым годам актуальное название данного универа (актуальное - это которое в 2021)
+                            if (year == 2021) {
+                                for (i in 2..countAddedUniversities) {
+                                    mutableListUniversitiesData[mutableListUniversitiesData.size - i].name = nameUniversity
+                                }
+                            }
                         }
                     }
-
-                    university.dataSource = "MIREA"
-                    mutableListUniversitiesData.add(university)
-                    println(university)
                 }
+            }
+
+            for (i in 1..countAddedUniversities) {
+                println(mutableListUniversitiesData[mutableListUniversitiesData.size - i])
             }
         }
     }
 }
 
-fun getBudgetUniversityData(url: String, mutableListUniversitiesData: MutableList<UniversityData>, year: Int) {
+//fun getBudgetUniversityData(url: String, mutableListUniversitiesData: MutableList<UniversityData>, year: Int) {
+//
+//    val file = File(url)
+//    val doc: Document = Jsoup.parse(file, null)
+//
+//    val row = doc.select("table#transparence_t > tbody > tr")
+//
+//    for (elem in row) {
+//        val nameUniversity = elem.select("td")[0].text().replace('"', ' ')
+//        val averageScoreBudgetEGE = elem.select("td")[1].text().toDouble()
+//        val growthDeclineAverageScoreBudgetEGE: Double? = if (elem.select("td")[2].text().isNotEmpty()) {
+//            elem.select("td")[2].text().toDouble()
+//        } else {
+//            0.0
+//        }
+//
+//        val numbersBudgetStudents = elem.select("td")[3].text().toInt()
+//        val numbersStudentWithoutExam = elem.select("td")[4].text().toInt()
+//        val averageScoreEGEWithoutIndividualAchievements: Boolean = elem.select("td")[5].text() != "Да"
+//
+//        mutableListUniversitiesData.add(
+//            UniversityData(
+//                name = nameUniversity,
+//                yearOfData = year,
+//                averageScoreBudgetEGE = averageScoreBudgetEGE,
+//                growthDeclineAverageScoreBudgetEGE = growthDeclineAverageScoreBudgetEGE!!,
+//                numbersBudgetStudents = numbersBudgetStudents,
+//                numbersStudentWithoutExam = numbersStudentWithoutExam,
+//                averageScoreEGEWithoutIndividualAchievements = averageScoreEGEWithoutIndividualAchievements,
+//                dataSource = "HSE"
+//            )
+//        )
+//    }
+//}
 
-    val file = File(url)
-    val doc: Document = Jsoup.parse(file, null)
-
-    val row = doc.select("table#transparence_t > tbody > tr")
-
-    for (elem in row) {
-        val nameUniversity = elem.select("td")[0].text().replace('"', ' ')
-        val averageScoreBudgetEGE = elem.select("td")[1].text().toDouble()
-        val growthDeclineAverageScoreBudgetEGE: Double? = if (elem.select("td")[2].text().isNotEmpty()) {
-            elem.select("td")[2].text().toDouble()
-        } else {
-            0.0
-        }
-
-        val numbersBudgetStudents = elem.select("td")[3].text().toInt()
-        val numbersStudentWithoutExam = elem.select("td")[4].text().toInt()
-        val averageScoreEGEWithoutIndividualAchievements: Boolean = elem.select("td")[5].text() != "Да"
-
-        mutableListUniversitiesData.add(
-            UniversityData(
-                name = nameUniversity,
-                yearOfData = year,
-                averageScoreBudgetEGE = averageScoreBudgetEGE,
-                growthDeclineAverageScoreBudgetEGE = growthDeclineAverageScoreBudgetEGE!!,
-                numbersBudgetStudents = numbersBudgetStudents,
-                numbersStudentWithoutExam = numbersStudentWithoutExam,
-                averageScoreEGEWithoutIndividualAchievements = averageScoreEGEWithoutIndividualAchievements,
-                dataSource = "HSE"
-            )
-        )
-    }
-}
-
-fun getPaidUniversityData(url: String, mutableListUniversitiesData: MutableList<UniversityData>, year: Int) {
-
-    val file = File(url)
-    val doc: Document = Jsoup.parse(file, null)
-
-    //val doc = Jsoup.connect(url).get()
-    val row = doc.select("table#transparence_t > tbody > tr")
-
-    for (elem in row) {
-        val nameUniversity = elem.select("td")[0].text().replace('"', ' ')
-
-        val averageScorePaidEGE = elem.select("td")[1].text().toDouble()
-        //val growthDeclineAverageScorePaidEGE = elem.select("td")[2].text().toDouble()
-
-        val growthDeclineAverageScorePaidEGE: Double? = if (elem.select("td")[2].text().isNotEmpty()) {
-            elem.select("td")[2].text().toDouble()
-        } else {
-            0.0
-        }
-
-        val numbersPaidStudents = elem.select("td")[3].text().toInt()
-
-        mutableListUniversitiesData.find { it.name == nameUniversity && it.yearOfData == year }?.let {
-            it.averageScorePaidEGE = averageScorePaidEGE
-            it.growthDeclineAverageScorePaidEGE = growthDeclineAverageScorePaidEGE!!
-            it.numbersPaidStudents = numbersPaidStudents
-        }
-    }
-}
-
-fun scrapeYGSN(
-    universitiesNameToFind: MutableList<String>,
-    dataAboutUniversityYGSN: DataAboutUniversityYGSN
-): Set<String> {
-
-    var listOfSet = mutableListOf<Set<String>>()
-
-    for (elem in dataAboutUniversityYGSN.dataOfYear) {
-        val url = elem.value.first
-        val set = mutableSetOf<String>()
-
-        val doc = Jsoup.connect(url).get()
-        val row = doc.select("table#transparence_t > tbody > tr")
-
-        for (elem in row) {
-            val speciality = elem.select("td")[0].text()
-            val currentUniversityName = elem.select("td")[1].text()
-
-            if (currentUniversityName in universitiesNameToFind)
-                set.add(speciality.toString())
-        }
-
-        listOfSet.add(set)
-    }
-
-    // Хард код для 3 множеств (3 года - 3 страницы анализа - 3 множества)
-    val result = listOfSet[0].intersect(listOfSet[1]).intersect(listOfSet[2])
-
-    try {
-        transaction {
-            addLogger(StdOutSqlLogger)
-
-            for (speciality in result) {
-                ygsn.insert {
-                    it[name] = speciality
-                }
-            }
-        }
-
-    } catch (exception: Exception) {
-        println(exception.message)
-    }
-
-    return result
-}
+//fun getPaidUniversityData(url: String, mutableListUniversitiesData: MutableList<UniversityData>, year: Int) {
+//
+//    val file = File(url)
+//    val doc: Document = Jsoup.parse(file, null)
+//
+//    //val doc = Jsoup.connect(url).get()
+//    val row = doc.select("table#transparence_t > tbody > tr")
+//
+//    for (elem in row) {
+//        val nameUniversity = elem.select("td")[0].text().replace('"', ' ')
+//
+//        val averageScorePaidEGE = elem.select("td")[1].text().toDouble()
+//        //val growthDeclineAverageScorePaidEGE = elem.select("td")[2].text().toDouble()
+//
+//        val growthDeclineAverageScorePaidEGE: Double? = if (elem.select("td")[2].text().isNotEmpty()) {
+//            elem.select("td")[2].text().toDouble()
+//        } else {
+//            0.0
+//        }
+//
+//        val numbersPaidStudents = elem.select("td")[3].text().toInt()
+//
+//        mutableListUniversitiesData.find { it.name == nameUniversity && it.yearOfData == year }?.let {
+//            it.averageScorePaidEGE = averageScorePaidEGE
+//            it.growthDeclineAverageScorePaidEGE = growthDeclineAverageScorePaidEGE!!
+//            it.numbersPaidStudents = numbersPaidStudents
+//        }
+//    }
+//}
 
 fun scrapeUniversityYGSN(dataAboutUniversityYGSN: DataAboutUniversityYGSN) {
 
     val mutableListUniversityYGSNData: MutableList<UniversityYGSNData> = mutableListOf()
-
-//    for (nameYGSN in setYGSN) {
-//        for (elem in dataAboutUniversityYGSN.dataOfYear) {
-//            mutableListUniversityYGSNData.add(UniversityYGSNData(ygsnName = nameYGSN, yearOfData = elem.key))
-//        }
-//    }
-
-//    for (i in mutableListUniversityYGSNData)
-//        println("$i")
 
     for (elem in dataAboutUniversityYGSN.dataOfYear) {
         val year = elem.key
@@ -318,13 +436,13 @@ fun scrapeUniversityYGSN(dataAboutUniversityYGSN: DataAboutUniversityYGSN) {
                     it[ygsnName] = ygsn.ygsnName
                     it[averageScoreBudgetEGE] = ygsn.averageScoreBudgetEGE
                     it[averageScorePaidEGE] = ygsn.averageScorePaidEGE
-                    it[growthDeclineAverageScoreBudgetEGE] = ygsn.growthDeclineAverageScoreBudgetEGE
-                    it[growthDeclineAverageScorePaidEGE] = ygsn.growthDeclineAverageScorePaidEGE
                     it[numbersBudgetStudents] = ygsn.numbersBudgetStudents
                     it[numbersPaidStudents] = ygsn.numbersPaidStudents
-                    it[numbersStudentWithoutExam] = ygsn.numbersStudentWithoutExam
-                    it[averageScoreEGEWithoutIndividualAchievements] = ygsn.averageScoreEGEWithoutIndividualAchievements
-                    it[costEducation] = ygsn.costEducation
+//                    it[growthDeclineAverageScoreBudgetEGE] = ygsn.growthDeclineAverageScoreBudgetEGE
+//                    it[growthDeclineAverageScorePaidEGE] = ygsn.growthDeclineAverageScorePaidEGE
+//                    it[numbersStudentWithoutExam] = ygsn.numbersStudentWithoutExam
+//                    it[averageScoreEGEWithoutIndividualAchievements] = ygsn.averageScoreEGEWithoutIndividualAchievements
+//                    it[costEducation] = ygsn.costEducation
                 }
             }
         }
@@ -347,20 +465,21 @@ fun getPaidUniversityYGSNData(url: String, mutableListUniversityYGSNData: Mutabl
             val nameYGSN = elem.select("td")[0].text()
             val averageScorePaidEGE = elem.select("td")[2].text().toDouble()
 
-            val growthDeclineAverageScorePaidEGE: Double? = if (elem.select("td")[3].text().isNotEmpty()) {
-                elem.select("td")[3].text().toDouble()
-            } else {
-                null
-            }
+//            val growthDeclineAverageScorePaidEGE: Double? = if (elem.select("td")[3].text().isNotEmpty()) {
+//                elem.select("td")[3].text().toDouble()
+//            } else {
+//                null
+//            }
 
             val numbersPaidStudents = elem.select("td")[4].text().toInt()
-            val costEducation: Double? = if (elem.select("td")[5].text() == "нет данных") {
-                null
-            } else {
-                elem.select("td")[5].text().toDouble()
-            }
 
-            val averageScoreEGEWithoutIndividualAchievements: Boolean = elem.select("td")[8].text() == "Да"
+//            val costEducation: Double? = if (elem.select("td")[5].text() == "нет данных") {
+//                null
+//            } else {
+//                elem.select("td")[5].text().toDouble()
+//            }
+
+//            val averageScoreEGEWithoutIndividualAchievements: Boolean = elem.select("td")[8].text() == "Да"
 
             mutableListUniversityYGSNData.find {
                 it.ygsnName == nameYGSN && it.yearOfData == year &&
@@ -368,10 +487,10 @@ fun getPaidUniversityYGSNData(url: String, mutableListUniversityYGSNData: Mutabl
             }?.let {
 
                 it.averageScorePaidEGE = averageScorePaidEGE
-                it.growthDeclineAverageScorePaidEGE = growthDeclineAverageScorePaidEGE
                 it.numbersPaidStudents = numbersPaidStudents
-                it.costEducation = costEducation
-                it.averageScoreEGEWithoutIndividualAchievements = averageScoreEGEWithoutIndividualAchievements
+//                it.growthDeclineAverageScorePaidEGE = growthDeclineAverageScorePaidEGE
+//                it.costEducation = costEducation
+//                it.averageScoreEGEWithoutIndividualAchievements = averageScoreEGEWithoutIndividualAchievements
             }
         } catch (e: Exception) {
             e.printStackTrace()
@@ -398,11 +517,11 @@ fun getBudgetUniversityYGSNData(url: String, mutableListUniversityYGSNData: Muta
                 null
             }
 
-            val growthDeclineAverageScoreBudgetEGE: Double? = if (elem.select("td")[3].text().isNotEmpty()) {
-                elem.select("td")[3].text().toDouble()
-            } else {
-                null
-            }
+//            val growthDeclineAverageScoreBudgetEGE: Double? = if (elem.select("td")[3].text().isNotEmpty()) {
+//                elem.select("td")[3].text().toDouble()
+//            } else {
+//                null
+//            }
 
             val numbersBudgetStudents: Int? = if (elem.select("td")[4].text().isNotEmpty()) {
                 elem.select("td")[4].text().toInt()
@@ -410,19 +529,21 @@ fun getBudgetUniversityYGSNData(url: String, mutableListUniversityYGSNData: Muta
                 null
             }
 
-            val numbersStudentWithoutExam: Int? = if (elem.select("td")[5].text().isNotEmpty()) {
-                elem.select("td")[5].text().toInt()
-            } else {
-                null
-            }
+//            val numbersStudentWithoutExam: Int? = if (elem.select("td")[5].text().isNotEmpty()) {
+//                elem.select("td")[5].text().toInt()
+//            } else {
+//                null
+//            }
 
             mutableListUniversityYGSNData.add(
                 UniversityYGSNData(
-                    yearOfData = year, universityName = nameUniversity,
-                    ygsnName = nameYGSN, averageScoreBudgetEGE = averageScoreBudgetEGE,
-                    growthDeclineAverageScoreBudgetEGE = growthDeclineAverageScoreBudgetEGE,
+                    yearOfData = year,
+                    universityName = nameUniversity,
+                    ygsnName = nameYGSN,
+                    averageScoreBudgetEGE = averageScoreBudgetEGE,
                     numbersBudgetStudents = numbersBudgetStudents,
-                    numbersStudentWithoutExam = numbersStudentWithoutExam
+//                    growthDeclineAverageScoreBudgetEGE = growthDeclineAverageScoreBudgetEGE,
+//                    numbersStudentWithoutExam = numbersStudentWithoutExam
                 )
             )
 
@@ -441,20 +562,20 @@ fun insertUniversities(mutableListUniversitiesData: MutableList<UniversityData>)
                 University.insert {
                     it[yearOfData] = university.yearOfData
                     it[name] = university.name
-                    it[averageScoreBudgetEGE] = university.averageScoreBudgetEGE
-                    it[averageScorePaidEGE] = university.averageScorePaidEGE
-                    it[growthDeclineAverageScoreBudgetEGE] = university.growthDeclineAverageScoreBudgetEGE
-                    it[growthDeclineAverageScorePaidEGE] = university.growthDeclineAverageScorePaidEGE
-                    it[numbersBudgetStudents] = university.numbersBudgetStudents
-                    it[numbersPaidStudents] = university.numbersPaidStudents
-                    it[numbersStudentWithoutExam] = university.numbersStudentWithoutExam
-                    it[averageScoreEGEWithoutIndividualAchievements] =
-                        university.averageScoreEGEWithoutIndividualAchievements
-                    it[researchActivities] = university.researchActivities
-                    it[internationalActivity] = university.internationalActivity
-                    it[financialAndEconomicActivities] = university.financialAndEconomicActivities
-                    it[salaryPPP] = university.salaryPPP
-                    it[additionalIndicator] = university.additionalIndicator
+                    it[region] = university.region
+                    it[hostel] = university.hostel
+                    it[averageAllStudentsEGE] = university.averageAllStudentsEGE
+                    it[dolyaOfflineEducation] = university.dolyaOfflineEducation
+                    it[averagedMinimalEGE] = university.averagedMinimalEGE
+                    it[averageBudgetEGE] = university.averageBudgetEGE
+                    it[countVserosBVI] = university.countVserosBVI
+                    it[countOlimpBVI] = university.countOlimpBVI
+                    it[countCelevoiPriem] = university.countCelevoiPriem
+                    it[dolyaCelevoiPriem] = university.dolyaCelevoiPriem
+                    it[ydelniyVesInostrancyWithoutSNG] = university.ydelniyVesInostrancyWithoutSNG
+                    it[ydelniyVesInostrancySNG] = university.ydelniyVesInostrancySNG
+                    it[averageBudgetWithoutSpecialRightsEGE] = university.averageBudgetWithoutSpecialRightsEGE
+                    it[jsonYGSN] = university.jsonYGSN
                     it[dataSource] = university.dataSource
                 }
             }
@@ -507,14 +628,14 @@ fun setUniversityDataSource(): DataAboutUniversity {
         ),
 
         mutableListOf(
-            //"https://monitoring.miccedu.ru/iam/2021/_vpo/material.php?type=1&id=1",
+//            "https://monitoring.miccedu.ru/iam/2021/_vpo/material.php?type=1&id=1",
 //            "https://monitoring.miccedu.ru/iam/2021/_vpo/material.php?type=1&id=2",
 //            "https://monitoring.miccedu.ru/iam/2021/_vpo/material.php?type=1&id=4",
-            //"https://monitoring.miccedu.ru/iam/2021/_vpo/material.php?type=1&id=3",
-            //"https://monitoring.miccedu.ru/iam/2021/_vpo/material.php?type=1&id=25",
-            //"https://monitoring.miccedu.ru/iam/2021/_vpo/material.php?type=1&id=5",
-            //"https://monitoring.miccedu.ru/iam/2021/_vpo/material.php?type=1&id=6",
-//            "https://monitoring.miccedu.ru/iam/2021/_vpo/material.php?type=1&id=7"
+//            "https://monitoring.miccedu.ru/iam/2021/_vpo/material.php?type=1&id=3",
+//            "https://monitoring.miccedu.ru/iam/2021/_vpo/material.php?type=1&id=25",
+//            "https://monitoring.miccedu.ru/iam/2021/_vpo/material.php?type=1&id=5",
+//            "https://monitoring.miccedu.ru/iam/2021/_vpo/material.php?type=1&id=6",
+            "https://monitoring.miccedu.ru/iam/2021/_vpo/material.php?type=1&id=7"
         )
     )
 }

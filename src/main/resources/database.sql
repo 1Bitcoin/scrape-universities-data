@@ -10,34 +10,36 @@ CREATE TABLE IF NOT EXISTS university
     KEY,
     name
     VARCHAR,
+    region
+    VARCHAR,
     yearOfData
     INT,
-    averageScoreBudgetEGE
-    NUMERIC,
-    averageScorePaidEGE
-    NUMERIC,
-    growthDeclineAverageScoreBudgetEGE
-    NUMERIC,
-    growthDeclineAverageScorePaidEGE
-    NUMERIC,
-    numbersPaidStudents
-    INT,
-    numbersBudgetStudents
-    INT,
-    numbersStudentWithoutExam
-    INT,
-    averageScoreEGEWithoutIndividualAchievements
+    hostel
     BOOL,
-    researchActivities
+    averageAllStudentsEGE
     NUMERIC,
-    internationalActivity
+    dolyaOfflineEducation
     NUMERIC,
-    financialAndEconomicActivities
+    averagedMinimalEGE
     NUMERIC,
-    salaryPPP
+    averageBudgetEGE
     NUMERIC,
-    additionalIndicator
+    countVserosBVI
+    INT,
+    countOlimpBVI
+    INT,
+    countCelevoiPriem
+    INT,
+    dolyaCelevoiPriem
     NUMERIC,
+    ydelniyVesInostrancyWithoutSNG
+    NUMERIC,
+    ydelniyVesInostrancySNG
+    NUMERIC,
+    averageBudgetWithoutSpecialRightsEGE
+    NUMERIC,
+    jsonYGSN
+    varchar,
     datasource
     varchar
 );
@@ -83,10 +85,10 @@ CREATE TABLE IF NOT EXISTS universityYGSN
     SERIAL
     PRIMARY
     KEY,
-    yearOfData
-    INT,
     universityName
     VARCHAR,
+    yearOfData
+    INT,
     ygsnName
     VARCHAR,
     averageScoreBudgetEGE
@@ -97,96 +99,101 @@ CREATE TABLE IF NOT EXISTS universityYGSN
     NUMERIC
     DEFAULT
     NULL,
-    growthDeclineAverageScoreBudgetEGE
-    NUMERIC
-    DEFAULT
-    NULL,
-    growthDeclineAverageScorePaidEGE
-    NUMERIC
-    DEFAULT
-    NULL,
     numbersPaidStudents
-    INT
-    DEFAULT
-    NULL,
+        INT
+        DEFAULT
+        NULL,
     numbersBudgetStudents
-    INT
-    DEFAULT
-    NULL,
-    numbersStudentWithoutExam
-    INT
-    DEFAULT
-    NULL,
-    averageScoreEGEWithoutIndividualAchievements
-    BOOL,
-    costEducation
-    NUMERIC
-    DEFAULT
-    NULL
+        INT
+        DEFAULT
+        NULL
+--     growthDeclineAverageScoreBudgetEGE
+--     NUMERIC
+--     DEFAULT
+--     NULL,
+--     growthDeclineAverageScorePaidEGE
+--     NUMERIC
+--     DEFAULT
+--     NULL,
+--     numbersStudentWithoutExam
+--     INT
+--     DEFAULT
+--     NULL,
+--     averageScoreEGEWithoutIndividualAchievements
+--     BOOL,
+--     costEducation
+--     NUMERIC
+--     DEFAULT
+--     NULL
 );
 
 CREATE TABLE IF NOT EXISTS statistics_universities_ygsn
 (
-    university_name VARCHAR,
+    university VARCHAR,
     ygsn_name VARCHAR,
     data INT,
-    research_activities NUMERIC,
-    international_activity NUMERIC,
-    financial_and_economic_activities NUMERIC,
-    salary_PPP NUMERIC,
-    additional_indicator NUMERIC,
+    region VARCHAR,
+    hostel BOOL,
 
-    average_score_budget_EGE
+    average_all_students_ege
+        NUMERIC,
+
+    dolya_offline_education
         NUMERIC
         DEFAULT
         NULL,
 
-    average_score_paid_EGE
+    averaged_minimal_ege
         NUMERIC
         DEFAULT
         NULL,
 
-    growth_score_budget_EGE
+    average_budget_ege
         NUMERIC
         DEFAULT
         NULL,
 
-    growth_score_paid_EGE
-        NUMERIC
-        DEFAULT
-        NULL,
-
-    numbers_paid_students
+    count_vseros_bvi
         INT
         DEFAULT
         NULL,
 
-    numbers_budget_students
+    count_olimp_bvi
         INT
         DEFAULT
         NULL,
 
-    numbers_student_without_exam
+    count_celevoi_priem
         INT
         DEFAULT
         NULL,
 
-    average_score_budget_EGE_ygsn
+    dolya_celevoi_priem
+        NUMERIC
+        DEFAULT
+        NULL,
+
+    ydelniy_ves_inostrancy_without_sng
         NUMERIC
         DEFAULT
             NULL,
 
-    average_score_paid_EGE_ygsn
+    ydelniy_ves_inostrancy_sng
         NUMERIC
         DEFAULT
             NULL,
 
-    growth_score_budget_EGE_ygsn
+    average_budget_without_special_rights_ege
         NUMERIC
         DEFAULT
             NULL,
 
-    growth_score_paid_EGE_ygsn
+    average_score_budget_ege_ygsn
+        NUMERIC
+        DEFAULT
+            NULL,
+
+    average_score_paid_ege_ygsn
         NUMERIC
         DEFAULT
             NULL,
@@ -201,14 +208,9 @@ CREATE TABLE IF NOT EXISTS statistics_universities_ygsn
         DEFAULT
             NULL,
 
-    numbers_student_without_exam_ygsn
-        INT
-        DEFAULT
-            NULL,
 
-
-    cost_ducation_ygsn
-        NUMERIC
+    json_ygsn
+        varchar
         DEFAULT
             NULL
 );

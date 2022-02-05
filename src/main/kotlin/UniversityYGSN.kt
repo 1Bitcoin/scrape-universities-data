@@ -7,13 +7,13 @@ object UniversityYGSN : Table("universityygsn") {
     var ygsnName = varchar("ygsnname", 255).references(ygsn.name)
     var averageScoreBudgetEGE = double("averagescorebudgetege").nullable()
     var averageScorePaidEGE = double("averagescorepaidege").nullable()
-    var growthDeclineAverageScoreBudgetEGE = double("growthdeclineaveragescorebudgetege").nullable()
-    var growthDeclineAverageScorePaidEGE = double("growthdeclineaveragescorepaidege").nullable()
     var numbersBudgetStudents = integer("numbersbudgetstudents").nullable()
     var numbersPaidStudents = integer("numberspaidstudents").nullable()
-    var numbersStudentWithoutExam = integer("numbersstudentwithoutexam").nullable()
-    var averageScoreEGEWithoutIndividualAchievements = bool("averagescoreegewithoutindividualachievements")
-    val costEducation = double("costeducation").nullable()
+//    var growthDeclineAverageScoreBudgetEGE = double("growthdeclineaveragescorebudgetege").nullable()
+//    var growthDeclineAverageScorePaidEGE = double("growthdeclineaveragescorepaidege").nullable()
+//    var numbersStudentWithoutExam = integer("numbersstudentwithoutexam").nullable()
+//    var averageScoreEGEWithoutIndividualAchievements = bool("averagescoreegewithoutindividualachievements")
+//    val costEducation = double("costeducation").nullable()
 }
 
 data class UniversityYGSNData(
@@ -22,12 +22,12 @@ data class UniversityYGSNData(
     var ygsnName: String = "",
     var averageScoreBudgetEGE: Double? = null,
     var averageScorePaidEGE: Double? = null,
-    var growthDeclineAverageScoreBudgetEGE: Double? = null,
-    var growthDeclineAverageScorePaidEGE: Double? = null,
     var numbersBudgetStudents: Int? = null,
     var numbersPaidStudents: Int? = null,
-    var numbersStudentWithoutExam: Int? = null,
-    var averageScoreEGEWithoutIndividualAchievements: Boolean = true,
-    var costEducation: Double? = null
+//    var growthDeclineAverageScoreBudgetEGE: Double? = null,
+//    var growthDeclineAverageScorePaidEGE: Double? = null,
+//    var numbersStudentWithoutExam: Int? = null,
+//    var averageScoreEGEWithoutIndividualAchievements: Boolean = true,
+//    var costEducation: Double? = null
 )
 

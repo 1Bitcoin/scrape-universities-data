@@ -1,73 +1,78 @@
 with mirea as (
     select generalname,
+           region,
+           hostel,
            yearofdata,
-           researchactivities,
-           internationalactivity,
-           financialandeconomicactivities,
-           salaryppp,
-           additionalindicator,
-           datasource
+           averageAllStudentsEGE,
+           dolyaOfflineEducation,
+           averagedMinimalEGE,
+           averageBudgetEGE,
+           countVserosBVI,
+           countOlimpBVI,
+           countCelevoiPriem,
+           dolyaCelevoiPriem,
+           ydelniyVesInostrancyWithoutSNG,
+           ydelniyVesInostrancySNG,
+           averageBudgetWithoutSpecialRightsEGE,
+           datasource,
+           jsonYGSN
     from university
              join nameuniversitiesmirea n on university.name = n.name
     where university.datasource = 'MIREA'
 ),
-     hse as (
-         select generalname,
-                yearofdata,
-                averagescorebudgetege,
-                averagescorepaidege,
-                growthdeclineaveragescorebudgetege,
-                growthdeclineaveragescorepaidege,
-                numbersbudgetstudents,
-                numberspaidstudents,
-                numbersstudentwithoutexam,
-                datasource
-         from university
-                  join nameuniversitieshse n on university.name = n.name
-         where university.datasource = 'HSE'
-),
+--      hse as (
+--          select generalname,
+--                 yearofdata,
+--                 averagescorebudgetege,
+--                 averagescorepaidege,
+--                 growthdeclineaveragescorebudgetege,
+--                 growthdeclineaveragescorepaidege,
+--                 numbersbudgetstudents,
+--                 numberspaidstudents,
+--                 numbersstudentwithoutexam,
+--                 datasource
+--          from university
+--                   join nameuniversitieshse n on university.name = n.name
+--          where university.datasource = 'HSE'
+-- ),
 
      glue_universities as (
-         select mirea.generalname as university, mirea.yearofdata as data, mirea.researchactivities as
-                research_activities, mirea.internationalactivity as international_activity,
-                mirea.financialandeconomicactivities as financial_and_economic_activities,
-                mirea.salaryppp as salary_ppp, mirea.additionalindicator as additional_indicator,
-                hse.averagescorebudgetege as average_score_budget_ege, hse.averagescorepaidege as average_score_paid_ege,
-                hse.growthdeclineaveragescorebudgetege as growth_score_budget_ege, hse.growthdeclineaveragescorepaidege as
-                growth_score_paid_ege, hse.numbersbudgetstudents as numbers_budget_students,
-                hse.numberspaidstudents as numbers_paid_students, hse.numbersstudentwithoutexam as numbers_student_without_exam
+         select mirea.generalname as university, mirea.region as region, mirea.hostel as hostel, mirea.yearofdata as data,
+                mirea.averageAllStudentsEGE as average_all_students_ege, mirea.dolyaOfflineEducation as dolya_offline_education,
+                mirea.averagedMinimalEGE as averaged_minimal_ege, mirea.averageBudgetEGE as average_budget_ege,
+                mirea.countVserosBVI as count_vseros_bvi, mirea.countOlimpBVI as count_olimp_bvi,
+                mirea.countCelevoiPriem as count_celevoi_priem, mirea.dolyaCelevoiPriem as dolya_celevoi_priem,
+                mirea.ydelniyVesInostrancyWithoutSNG as ydelniy_ves_inostrancy_without_sng,
+                mirea.ydelniyVesInostrancySNG as ydelniy_ves_inostrancy_sng,
+                mirea.averageBudgetWithoutSpecialRightsEGE as average_budget_without_special_rights_ege,
+                mirea.jsonYGSN as json_ygsn
+
          from mirea
-                  join hse on mirea.generalname = hse.generalname and mirea.yearofdata = hse.yearofdata
-         where mirea.generalname!= '' and hse.generalname != ''
+         where mirea.generalname != ''
 ),
 
      ygsn_info as (
          select generalname as university,
                 yearofdata as data,
                 ygsnname as ygsn_name,
-                averagescorebudgetege as average_score_budget_ege_ygsn,
-                averagescorepaidege as average_score_paid_ege_ygsn,
-                growthdeclineaveragescorebudgetege as growth_score_budget_ege_ygsn,
-                growthdeclineaveragescorepaidege as growth_score_paid_ege_ygsn,
-                numbersbudgetstudents as numbers_budget_students_ygsn,
-                numberspaidstudents as numbers_paid_students_ygsn,
-                numbersstudentwithoutexam as numbers_student_without_exam_ygsn,
-                costeducation as cost_education_ygsn
+                averageScoreBudgetEGE as average_score_budget_ege_ygsn,
+                averageScorePaidEGE as average_score_paid_ege_ygsn,
+                numbersBudgetStudents as numbers_budget_students_ygsn,
+                numbersPaidStudents as numbers_paid_students_ygsn
          from universityygsn
                   join nameuniversitieshse n on universityygsn.universityname = n.name
 )
 insert into statistics_universities_ygsn
 select glue_universities.university, ygsn_info.ygsn_name, glue_universities.data,
-       glue_universities.research_activities, glue_universities.international_activity,
-       glue_universities.financial_and_economic_activities, glue_universities.salary_ppp,
-       glue_universities.additional_indicator, glue_universities.average_score_budget_ege,
-       glue_universities.average_score_paid_ege, glue_universities.growth_score_budget_ege,
-       glue_universities.growth_score_paid_ege, glue_universities.numbers_budget_students,
-       glue_universities.numbers_paid_students, glue_universities.numbers_student_without_exam,
-       ygsn_info.average_score_budget_ege_ygsn, ygsn_info.average_score_paid_ege_ygsn,
-       ygsn_info.growth_score_budget_ege_ygsn, ygsn_info.growth_score_paid_ege_ygsn,
-       ygsn_info.numbers_paid_students_ygsn, ygsn_info.numbers_budget_students_ygsn,
-       ygsn_info.numbers_student_without_exam_ygsn, ygsn_info.cost_education_ygsn
+       glue_universities.region, glue_universities.hostel,
+       glue_universities.average_all_students_ege, glue_universities.dolya_offline_education,
+       glue_universities.averaged_minimal_ege, glue_universities.average_budget_ege,
+       glue_universities.count_vseros_bvi, glue_universities.count_olimp_bvi,
+       glue_universities.count_celevoi_priem, glue_universities.dolya_celevoi_priem,
+       glue_universities.ydelniy_ves_inostrancy_without_sng, glue_universities.ydelniy_ves_inostrancy_sng,
+       glue_universities.average_budget_without_special_rights_ege, ygsn_info.average_score_budget_ege_ygsn,
+       ygsn_info.average_score_paid_ege_ygsn, ygsn_info.numbers_paid_students_ygsn,
+       ygsn_info.numbers_budget_students_ygsn, glue_universities.json_ygsn
 from glue_universities
     join ygsn_info on glue_universities.university = ygsn_info.university and glue_universities.data = ygsn_info.data;
 

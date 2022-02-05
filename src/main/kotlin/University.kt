@@ -3,38 +3,56 @@ import org.jetbrains.exposed.sql.Table
 object University : Table("university") {
     var id = integer("id").autoIncrement().primaryKey()
     var name = varchar("name", 400)
+    var region = varchar("region", 400)
     var yearOfData = integer("yearofdata")
-    var averageScoreBudgetEGE = double("averagescorebudgetege")
-    var averageScorePaidEGE = double("averagescorepaidege")
-    var growthDeclineAverageScoreBudgetEGE = double("growthdeclineaveragescorebudgetege")
-    var growthDeclineAverageScorePaidEGE = double("growthdeclineaveragescorepaidege")
-    var numbersBudgetStudents = integer("numbersbudgetstudents")
-    var numbersPaidStudents = integer("numberspaidstudents")
-    var numbersStudentWithoutExam = integer("numbersstudentwithoutexam")
-    var averageScoreEGEWithoutIndividualAchievements = bool("averagescoreegewithoutindividualachievements")
-    var researchActivities = double("researchactivities")
-    var internationalActivity = double("internationalactivity")
-    var financialAndEconomicActivities = double("financialandeconomicactivities")
-    var salaryPPP = double("salaryppp")
-    var additionalIndicator = double("additionalindicator")
+    var hostel = bool("hostel")
+
+    var averageAllStudentsEGE = double("averageallstudentsege")
+    var dolyaOfflineEducation = double("dolyaofflineeducation")
+
+    var averagedMinimalEGE = double("averagedminimalege")
+    var averageBudgetEGE = double("averagebudgetege")
+
+    var countVserosBVI = integer("countvserosbvi")
+    var countOlimpBVI = integer("countolimpbvi")
+    var countCelevoiPriem = integer("countcelevoipriem")
+
+    var dolyaCelevoiPriem = double("dolyacelevoipriem")
+
+    var ydelniyVesInostrancyWithoutSNG = double("ydelniyvesinostrancywithoutsng")
+    var ydelniyVesInostrancySNG = double("ydelniyvesinostrancysng")
+
+    var averageBudgetWithoutSpecialRightsEGE = double("averagebudgetwithoutspecialrightsege")
+
+    var jsonYGSN = varchar("jsonygsn", 1000000)
     var dataSource = varchar("datasource", 10)
 }
 
 data class UniversityData(
     var name: String = "",
+    var region: String = "",
     var yearOfData: Int = 0,
-    var averageScoreBudgetEGE: Double = 0.0,
-    var averageScorePaidEGE: Double = 0.0,
-    var growthDeclineAverageScoreBudgetEGE: Double = 0.0,
-    var growthDeclineAverageScorePaidEGE: Double = 0.0,
-    var numbersBudgetStudents: Int = 0,
-    var numbersPaidStudents: Int = 0,
-    var numbersStudentWithoutExam: Int = 0,
-    var averageScoreEGEWithoutIndividualAchievements: Boolean = true,
-    var researchActivities: Double = 0.0,
-    var internationalActivity: Double = 0.0,
-    var financialAndEconomicActivities: Double = 0.0,
-    var salaryPPP: Double = 0.0,
-    var additionalIndicator: Double = 0.0,
+    var hostel: Boolean = false,
+
+    var averageAllStudentsEGE: Double = 0.0,
+
+    var dolyaOfflineEducation: Double = 0.0,
+
+    var averagedMinimalEGE: Double = 0.0,
+    var averageBudgetEGE: Double = 0.0,
+
+    var countVserosBVI: Int = 0,
+    var countOlimpBVI: Int = 0,
+    var countCelevoiPriem: Int = 0,
+
+    var dolyaCelevoiPriem: Double = 0.0,
+
+    var ydelniyVesInostrancyWithoutSNG: Double = 0.0,
+    var ydelniyVesInostrancySNG: Double = 0.0,
+
+    var averageBudgetWithoutSpecialRightsEGE: Double = 0.0,
+
+    var jsonYGSN: String,
+
     var dataSource: String = ""
 )
