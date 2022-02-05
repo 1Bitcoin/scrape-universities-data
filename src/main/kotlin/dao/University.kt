@@ -1,3 +1,5 @@
+package dao
+
 import org.jetbrains.exposed.sql.Table
 
 object University : Table("university") {
@@ -27,32 +29,3 @@ object University : Table("university") {
     var jsonYGSN = varchar("jsonygsn", 1000000)
     var dataSource = varchar("datasource", 10)
 }
-
-data class UniversityData(
-    var name: String = "",
-    var region: String = "",
-    var yearOfData: Int = 0,
-    var hostel: Boolean = false,
-
-    var averageAllStudentsEGE: Double = 0.0,
-
-    var dolyaOfflineEducation: Double = 0.0,
-
-    var averagedMinimalEGE: Double = 0.0,
-    var averageBudgetEGE: Double = 0.0,
-
-    var countVserosBVI: Int = 0,
-    var countOlimpBVI: Int = 0,
-    var countCelevoiPriem: Int = 0,
-
-    var dolyaCelevoiPriem: Double = 0.0,
-
-    var ydelniyVesInostrancyWithoutSNG: Double = 0.0,
-    var ydelniyVesInostrancySNG: Double = 0.0,
-
-    var averageBudgetWithoutSpecialRightsEGE: Double = 0.0,
-
-    var jsonYGSN: String,
-
-    var dataSource: String = ""
-)

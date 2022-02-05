@@ -1,3 +1,5 @@
+package dao
+
 import org.jetbrains.exposed.sql.Table
 
 object NameUniversitiesHSE : Table("nameuniversitieshse") {
@@ -5,8 +7,3 @@ object NameUniversitiesHSE : Table("nameuniversitieshse") {
     var name = varchar("name", 400)
     var generalname = varchar("generalname", 400)
 }
-
-data class NameUniversitiesData(
-    var name: String = "",
-    var generalname: String = ""
-)

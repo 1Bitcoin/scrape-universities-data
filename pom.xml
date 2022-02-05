@@ -9,7 +9,7 @@
     <version>1.0</version>
     <packaging>jar</packaging>
 
-    <name>consoleApp</name>
+    <name>POM сервиса агрегации данных о университетах и УГСН</name>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -20,12 +20,6 @@
     <repositories>
         <repository>
             <id>mavenCentral</id>
-            <url>https://repo1.maven.org/maven2/</url>
-        </repository>
-
-        <repository>
-            <id>mavenCentral</id>
-            <name>mavenCentral</name>
             <url>https://repo1.maven.org/maven2/</url>
         </repository>
 

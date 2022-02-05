@@ -1,3 +1,5 @@
+package dao
+
 import org.jetbrains.exposed.sql.Table
 
 object NameUniversitiesMIREA : Table("nameuniversitiesmirea") {
