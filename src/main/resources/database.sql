@@ -215,5 +215,14 @@ CREATE TABLE IF NOT EXISTS statistics_universities_ygsn
             NULL
 );
 
+CREATE TABLE distribution_students (
+     id SERIAL,
+     region VARCHAR(100),
+     count_vyp INT,
+     count_participant INT,
+     count_100ball INT,
+     PRIMARY KEY (id)
+);
+
 
 
