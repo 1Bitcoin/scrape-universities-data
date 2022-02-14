@@ -7,34 +7,35 @@ import org.jetbrains.exposed.sql.addLogger
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.transactions.transaction
 
-fun insertUniversities(mutableListUniversitiesData: MutableList<UniversityData>) {
+fun insertUniversity(universitiesData: UniversityData): Int {
+    var insertedId = -1
+
     try {
         transaction {
             addLogger(StdOutSqlLogger)
 
-            for (university in mutableListUniversitiesData) {
-                University.insert {
-                    it[yearOfData] = university.yearOfData
-                    it[name] = university.name
-                    it[region] = university.region
-                    it[hostel] = university.hostel
-                    it[averageAllStudentsEGE] = university.averageAllStudentsEGE
-                    it[dolyaOfflineEducation] = university.dolyaOfflineEducation
-                    it[averagedMinimalEGE] = university.averagedMinimalEGE
-                    it[averageBudgetEGE] = university.averageBudgetEGE
-                    it[countVserosBVI] = university.countVserosBVI
-                    it[countOlimpBVI] = university.countOlimpBVI
-                    it[countCelevoiPriem] = university.countCelevoiPriem
-                    it[dolyaCelevoiPriem] = university.dolyaCelevoiPriem
-                    it[ydelniyVesInostrancyWithoutSNG] = university.ydelniyVesInostrancyWithoutSNG
-                    it[ydelniyVesInostrancySNG] = university.ydelniyVesInostrancySNG
-                    it[averageBudgetWithoutSpecialRightsEGE] = university.averageBudgetWithoutSpecialRightsEGE
-                    it[jsonYGSN] = university.jsonYGSN
-                    it[dataSource] = university.dataSource
-                }
-            }
+            insertedId = University.insert {
+                it[yearOfData] = universitiesData.yearOfData
+                it[name] = universitiesData.name
+                it[region] = universitiesData.region
+                it[hostel] = universitiesData.hostel
+                it[averageAllStudentsEGE] = universitiesData.averageAllStudentsEGE
+                it[dolyaOfflineEducation] = universitiesData.dolyaOfflineEducation
+                it[averagedMinimalEGE] = universitiesData.averagedMinimalEGE
+                it[averageBudgetEGE] = universitiesData.averageBudgetEGE
+                it[countVserosBVI] = universitiesData.countVserosBVI
+                it[countOlimpBVI] = universitiesData.countOlimpBVI
+                it[countCelevoiPriem] = universitiesData.countCelevoiPriem
+                it[dolyaCelevoiPriem] = universitiesData.dolyaCelevoiPriem
+                it[ydelniyVesInostrancyWithoutSNG] = universitiesData.ydelniyVesInostrancyWithoutSNG
+                it[ydelniyVesInostrancySNG] = universitiesData.ydelniyVesInostrancySNG
+                it[averageBudgetWithoutSpecialRightsEGE] = universitiesData.averageBudgetWithoutSpecialRightsEGE
+                it[dataSource] = universitiesData.dataSource
+            } get University.id
         }
     } catch (exception: Exception) {
         println(exception.message)
     }
+
+    return insertedId
 }

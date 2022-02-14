@@ -1,5 +1,8 @@
 import datasource.setUniversityDataSource
 import datasource.setUniversityYGSNDataSource
+import dto.UniversityYGSNMIREAData
+import org.jetbrains.database.insertNameUniversitiesMIREA
+import org.jetbrains.database.insertUniversityYGSNMIREA
 import org.jetbrains.exposed.sql.Database
 import scrape.data.universities.mirea.scrapeUniversityMIREA
 
@@ -14,6 +17,7 @@ fun main() {
 
     val dataAboutUniversity = setUniversityDataSource()
     val dataAboutUniversityYGSN = setUniversityYGSNDataSource()
+
 
     scrapeUniversityMIREA(dataAboutUniversity)
 

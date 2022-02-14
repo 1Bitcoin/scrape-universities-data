@@ -3,8 +3,10 @@ package scrape.data.universities.mirea
 import com.google.gson.JsonParser
 import datasource.vo.DataAboutUniversity
 import dto.UniversityData
+import dto.UniversityYGSNMIREAData
 import org.jetbrains.database.getHSEUniversityName
-import org.jetbrains.database.insertUniversities
+import org.jetbrains.database.insertUniversity
+import org.jetbrains.database.insertUniversityYGSNMIREA
 import org.jetbrains.database.selectUniversityYGSNInfo
 import org.jsoup.Jsoup
 import parser.parseCSVFileWithDolyaYGSN
@@ -15,9 +17,6 @@ fun scrapeUniversityMIREA(dataAboutUniversity: DataAboutUniversity) {
     val mutableListUniversitiesData: MutableList<UniversityData> = mutableListOf()
 
     getPersonalityUniversityData(dataAboutUniversity.monitoring, mutableListUniversitiesData)
-
-    // Сохранили
-    insertUniversities(mutableListUniversitiesData)
 
     // Ищем и сопоставляем текущие названия с найденными в интернете
     //val matchedNames = findGeneralNameUniversities(mutableListUniversitiesData)
@@ -51,6 +50,8 @@ fun getPersonalityUniversityData(
             // Идем по годам универа
             var countAddedUniversities = 0
             for (year in yearOfMonitoring) {
+                val listUniversityYGSNMIREAData = mutableListOf<UniversityYGSNMIREAData>()
+
                 val url = "https://monitoring.miccedu.ru/iam/$year/_vpo/$id"
 
                 println(url)
@@ -70,127 +71,124 @@ fun getPersonalityUniversityData(
 
                     // Запоминаем название в 2021 году и проставляем такое же в остальные года
                     if (year == 2021) {
+
                         // Получаем название вуза на сайте вышки (т.к инфу будет брать оттуда)
                         hseNameUniversity = getHSEUniversityName(nameUniversity)
-
                         actualUniversityName = nameUniversity
 
                     } else {
                         nameUniversity = actualUniversityName
                     }
 
-                    // Если таблица существует
-                    if (universityPage.select("table#analis_dop > tbody").size > 0) {
-                        val availabilityHostel = universityPage
-                            .select("table#analis_dop > tbody > tr")[49]
-                            .select("td")[3]
-                            .text()
-                            .replace(" ", "")
-                            .toInt()
+                    // Если соответствующий вуз на сайте вышки не нашли, нет смысла сюда заходить
+                    if (hseNameUniversity.isNotEmpty()) {
+                        // Если таблица существует
+                        if (universityPage.select("table#analis_dop > tbody").size > 0) {
+                            val availabilityHostel = universityPage
+                                .select("table#analis_dop > tbody > tr")[49]
+                                .select("td")[3]
+                                .text()
+                                .replace(" ", "")
+                                .toInt()
 
-                        var hostel = false
+                            var hostel = false
 
-                        if (availabilityHostel != 0)
-                            hostel = true
+                            if (availabilityHostel != 0)
+                                hostel = true
 
-                        val averageAllStudentsEGE = universityPage
-                            .select("table#analis_dop > tbody > tr")[5]
-                            .select("td")[3]
-                            .text()
-                            .replace(",", ".")
-                            .replace(" ", "")
-                            .toDouble()
-
-                        val dolyaOfflineEducation = universityPage
-                            .select("table#analis_dop > tbody > tr")[6]
-                            .select("td")[3]
-                            .text()
-                            .replace(",", ".")
-                            .replace(" ", "")
-                            .toDouble()
-
-                        //println("$averageAllStudentsEGE $dolyaOfflineEducation")
-
-                        val napdeTable = universityPage.select("table[class=napde] > tbody")
-                        //println(napdeTable)
-
-                        if (napdeTable.size > 0) {
-                            val averageBudgetEGE = napdeTable[0]
-                                .select("tr")[1]
+                            val averageAllStudentsEGE = universityPage
+                                .select("table#analis_dop > tbody > tr")[5]
                                 .select("td")[3]
                                 .text()
                                 .replace(",", ".")
                                 .replace(" ", "")
                                 .toDouble()
 
-                            val averageBudgetWithoutSpecialRightsEGE = napdeTable[0]
-                                .select("tr")[2]
+                            val dolyaOfflineEducation = universityPage
+                                .select("table#analis_dop > tbody > tr")[6]
                                 .select("td")[3]
                                 .text()
                                 .replace(",", ".")
                                 .replace(" ", "")
                                 .toDouble()
 
-                            val averagedMinimalEGE = napdeTable[0]
-                                .select("tr")[4]
-                                .select("td")[3]
-                                .text()
-                                .replace(",", ".")
-                                .replace(" ", "")
-                                .toDouble()
+                            //println("$averageAllStudentsEGE $dolyaOfflineEducation")
 
-                            val countVserosBVI = napdeTable[0].select("tr")[5].select("td")[3]
-                                .text().replace(" ", "").toInt()
+                            val napdeTable = universityPage.select("table[class=napde] > tbody")
+                            //println(napdeTable)
 
-                            val countOlimpBVI = napdeTable[0].select("tr")[6].select("td")[3]
-                                .text().replace(" ", "").toInt()
+                            if (napdeTable.size > 0) {
+                                val averageBudgetEGE = napdeTable[0]
+                                    .select("tr")[1]
+                                    .select("td")[3]
+                                    .text()
+                                    .replace(",", ".")
+                                    .replace(" ", "")
+                                    .toDouble()
 
-                            val countCelevoiPriem = napdeTable[0].select("tr")[7].select("td")[3]
-                                .text().replace(" ", "").toInt()
+                                val averageBudgetWithoutSpecialRightsEGE = napdeTable[0]
+                                    .select("tr")[2]
+                                    .select("td")[3]
+                                    .text()
+                                    .replace(",", ".")
+                                    .replace(" ", "")
+                                    .toDouble()
 
-                            val dolyaCelevoiPriem = napdeTable[0]
-                                .select("tr")[8]
-                                .select("td")[3]
-                                .text()
-                                .replace(",", ".")
-                                .replace(" ", "")
-                                .toDouble()
+                                val averagedMinimalEGE = napdeTable[0]
+                                    .select("tr")[4]
+                                    .select("td")[3]
+                                    .text()
+                                    .replace(",", ".")
+                                    .replace(" ", "")
+                                    .toDouble()
 
-                            val ydelniyVesInostrancyWithoutSNG = napdeTable[2]
-                                .select("tr")[1]
-                                .select("td")[3]
-                                .text()
-                                .replace(",", ".")
-                                .replace(" ", "")
-                                .toDouble()
+                                val countVserosBVI = napdeTable[0].select("tr")[5].select("td")[3]
+                                    .text().replace(" ", "").toInt()
 
-                            val ydelniyVesInostrancySNG = napdeTable[2]
-                                .select("tr")[2]
-                                .select("td")[3]
-                                .text()
-                                .replace(",", ".")
-                                .replace(" ", "")
-                                .toDouble()
+                                val countOlimpBVI = napdeTable[0].select("tr")[6].select("td")[3]
+                                    .text().replace(" ", "").toInt()
+
+                                val countCelevoiPriem = napdeTable[0].select("tr")[7].select("td")[3]
+                                    .text().replace(" ", "").toInt()
+
+                                val dolyaCelevoiPriem = napdeTable[0]
+                                    .select("tr")[8]
+                                    .select("td")[3]
+                                    .text()
+                                    .replace(",", ".")
+                                    .replace(" ", "")
+                                    .toDouble()
+
+                                val ydelniyVesInostrancyWithoutSNG = napdeTable[2]
+                                    .select("tr")[1]
+                                    .select("td")[3]
+                                    .text()
+                                    .replace(",", ".")
+                                    .replace(" ", "")
+                                    .toDouble()
+
+                                val ydelniyVesInostrancySNG = napdeTable[2]
+                                    .select("tr")[2]
+                                    .select("td")[3]
+                                    .text()
+                                    .replace(",", ".")
+                                    .replace(" ", "")
+                                    .toDouble()
 
 
-                            val tableYGSN = universityPage.select("table#analis_reg > tbody > tr").iterator()
-                            val listOfYGSN = mutableListOf<String>()
+                                val tableYGSN = universityPage.select("table#analis_reg > tbody > tr").iterator()
 
-                            // skit first element
-                            val firstElement = tableYGSN.next().select("td").text()
+                                // Попускаем первый элемент
+                                val firstElement = tableYGSN.next().select("td").text()
 
-                            // В предыдущих годах таблица была другой, необходимо пропустить строки
-                            if (firstElement.contains("по ОКСО")) { // Минобрнауки России от 12.09.2013
-                                while (tableYGSN.hasNext() && !tableYGSN.next().select("td").text().contains("Минобрнауки России от 12.09.2013")) {}
-                            }
+                                // В предыдущих годах таблица была другой, необходимо пропустить строки
+                                if (firstElement.contains("по ОКСО")) { // Минобрнауки России от 12.09.2013
+                                    while (tableYGSN.hasNext() && !tableYGSN.next().select("td").text().contains("Минобрнауки России от 12.09.2013")) {}
+                                }
 
-                            var total = 0
-                            // Если вуз не нашли, нет смысла сюда заходить
-                            if (hseNameUniversity.isNotEmpty()) {
+                                var total = 0
 
                                 // Идем по списку УГСН вуза
-                                var json = ""
-
                                 while (tableYGSN.hasNext()) {
                                     val element = tableYGSN.next().select("td")
 
@@ -224,7 +222,6 @@ fun getPersonalityUniversityData(
                                     }
 
                                     // Вычисляем кол-во людей на бюджете и средний балл по УГСН
-
                                     // Если что-то нашлось - иначе не считаем
                                     if (dataAboutYGSN.isNotEmpty()) {
                                         for (triple in dataAboutYGSN) {
@@ -260,19 +257,24 @@ fun getPersonalityUniversityData(
                                                 .replace("%", "")
                                                 .toDouble()
 
-                                            json  += "{ \"ygsnName\": \"$ygsn\", \"contingentStudents\": \"$contingent\", " +
-                                                    "\"dolyaContingenta\": \"$dolyaContingenta\", " +
-                                                    "\"numbersBudgetStudents\": \"$correctNumbersBudgetStudents\", " +
-                                                    "\"averageScoreBudgetEGE\": \"$correctAverageScoreBudgetEGE\" }, "
+
+                                            // Первые 2 цифры названия УГСН - это его ид в нашей БД
+                                            val ygsnId = ygsn.take(2).toInt()
+
+                                            val universityYGSNMIREAData = UniversityYGSNMIREAData(ygsnId = ygsnId,
+                                                contingentStudents = contingent, dolyaContingenta = dolyaContingenta,
+                                                numbersBudgetStudents = correctNumbersBudgetStudents,
+                                                averageScoreBudgetEGE = correctAverageScoreBudgetEGE
+                                            )
+
+                                            listUniversityYGSNMIREAData.add(universityYGSNMIREAData)
                                         }
                                     }
                                 }
 
-                                if (json.isNotEmpty()) {
-                                    val resultJson = json.dropLast(2)
+                                // Если хоть 1 УГСН был пересчитан, иначе нет смысла добавлять этот вуз
+                                if (listUniversityYGSNMIREAData.isNotEmpty()) {
                                     println("total: $total")
-
-                                    listOfYGSN.add(resultJson)
 
                                     val universityData = UniversityData(
                                         name = nameUniversity,
@@ -290,23 +292,30 @@ fun getPersonalityUniversityData(
                                         dolyaCelevoiPriem = dolyaCelevoiPriem,
                                         ydelniyVesInostrancyWithoutSNG = ydelniyVesInostrancyWithoutSNG,
                                         ydelniyVesInostrancySNG = ydelniyVesInostrancySNG,
-                                        jsonYGSN = listOfYGSN.toString(),
                                         dataSource = "MIREA"
                                     )
 
                                     println(universityData)
 
-                                    mutableListUniversitiesData.add(universityData)
+                                    val insertedIdUniversity = insertUniversity(universityData)
+
+                                    for (ygsn in listUniversityYGSNMIREAData) {
+                                        ygsn.universityId = insertedIdUniversity
+                                    }
+
+                                    insertUniversityYGSNMIREA(listUniversityYGSNMIREAData)
+
                                     countAddedUniversities++
+
+                                } else {
+                                    println("Список УГСН пуст, вуз пропускается")
                                 }
                             }
                         }
+                    } else {
+                        println("Соответствие вузу на сайте вышки не найдено, вуз пропускается")
                     }
                 }
-            }
-
-            for (i in 1..countAddedUniversities) {
-                println(mutableListUniversitiesData[mutableListUniversitiesData.size - i])
             }
         }
     }

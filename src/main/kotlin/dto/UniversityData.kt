@@ -24,7 +24,5 @@ data class UniversityData(
 
     var averageBudgetWithoutSpecialRightsEGE: Double = 0.0,
 
-    var jsonYGSN: String,
-
     var dataSource: String = ""
 )

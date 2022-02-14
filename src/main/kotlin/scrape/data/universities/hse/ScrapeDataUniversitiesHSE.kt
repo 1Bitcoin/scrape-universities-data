@@ -3,7 +3,7 @@ package scrape.data.universities.hse
 import datasource.vo.DataAboutUniversity
 import dto.UniversityData
 import org.jetbrains.database.insertNameUniversitiesHSE
-import org.jetbrains.database.insertUniversities
+import org.jetbrains.database.insertUniversity
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import scrape.data.universities.general.name.findGeneralNameUniversities
@@ -22,7 +22,7 @@ fun scrapeUniversityHSE(dataAboutUniversity: DataAboutUniversity) {
 
     }
     // Сохранили
-    insertUniversities(mutableListUniversitiesData)
+    //insertUniversity(mutableListUniversitiesData)
 
     // Ищем и сопоставляем текущие названия с найденными в интернете
     val matchedNames = findGeneralNameUniversities(mutableListUniversitiesData)

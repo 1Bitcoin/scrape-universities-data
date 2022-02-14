@@ -38,8 +38,6 @@ CREATE TABLE IF NOT EXISTS university
     NUMERIC,
     averageBudgetWithoutSpecialRightsEGE
     NUMERIC,
-    jsonYGSN
-    varchar,
     datasource
     varchar
 );
@@ -66,17 +64,6 @@ CREATE TABLE IF NOT EXISTS nameUniversitiesMIREA
     VARCHAR,
     generalname
     varchar
-);
-
-CREATE TABLE IF NOT EXISTS YGSN
-(
-    id
-    SERIAL
-    PRIMARY
-    KEY,
-    name
-    VARCHAR
-    UNIQUE
 );
 
 CREATE TABLE IF NOT EXISTS universityYGSN
@@ -223,6 +210,47 @@ CREATE TABLE distribution_students (
      count_100ball INT,
      PRIMARY KEY (id)
 );
+
+CREATE TABLE IF NOT EXISTS student (
+       id SERIAL PRIMARY KEY,
+       region VARCHAR(100),
+       change_region bool
+);
+
+CREATE TABLE IF NOT EXISTS ege (
+     id SERIAL PRIMARY KEY,
+     name varchar UNIQUE
+);
+
+CREATE TABLE IF NOT EXISTS ygsn
+(
+    id SERIAL PRIMARY KEY,
+    name VARCHAR UNIQUE
+);
+
+CREATE TABLE IF NOT EXISTS student_ege(
+     id SERIAL PRIMARY KEY,
+     student_id INTEGER,
+     ege_id INTEGER,
+     score_ege NUMERIC,
+     FOREIGN KEY (ege_id) REFERENCES ege (Id),
+     FOREIGN KEY (student_id) REFERENCES student (Id)
+);
+
+CREATE TABLE IF NOT EXISTS university_ygsn_mirea(
+      id SERIAL PRIMARY KEY,
+      university_id INTEGER,
+      ygsn_id INTEGER,
+      contingentStudents NUMERIC,
+      dolyaContingenta NUMERIC,
+      numbersBudgetStudents INTEGER,
+      averageScoreBudgetEGE NUMERIC,
+      FOREIGN KEY (ygsn_id) REFERENCES ygsn (Id),
+      FOREIGN KEY (university_id) REFERENCES university (Id)
+);
+
+
+
 
 
 

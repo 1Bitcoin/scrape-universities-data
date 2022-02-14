@@ -26,6 +26,5 @@ object University : Table("university") {
 
     var averageBudgetWithoutSpecialRightsEGE = double("averagebudgetwithoutspecialrightsege")
 
-    var jsonYGSN = varchar("jsonygsn", 1000000)
     var dataSource = varchar("datasource", 10)
 }
