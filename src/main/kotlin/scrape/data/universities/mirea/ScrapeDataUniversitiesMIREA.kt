@@ -4,10 +4,7 @@ import com.google.gson.JsonParser
 import datasource.vo.DataAboutUniversity
 import dto.UniversityData
 import dto.UniversityYGSNMIREAData
-import org.jetbrains.database.getHSEUniversityName
-import org.jetbrains.database.insertUniversity
-import org.jetbrains.database.insertUniversityYGSNMIREA
-import org.jetbrains.database.selectUniversityYGSNInfo
+import org.jetbrains.database.*
 import org.jsoup.Jsoup
 import parser.parseCSVFileWithDolyaYGSN
 import java.sql.QueryExecutor
@@ -188,6 +185,9 @@ fun getPersonalityUniversityData(
 
                                 var total = 0
 
+                                // Список списков куда сохраняем triple для каждого УГСН
+                                val listOfDataAboutYGSN = mutableListOf<MutableList<Triple<Int, Double, Double>>>()
+
                                 // Идем по списку УГСН вуза
                                 while (tableYGSN.hasNext()) {
                                     val element = tableYGSN.next().select("td")
@@ -224,6 +224,10 @@ fun getPersonalityUniversityData(
                                     // Вычисляем кол-во людей на бюджете и средний балл по УГСН
                                     // Если что-то нашлось - иначе не считаем
                                     if (dataAboutYGSN.isNotEmpty()) {
+
+                                        // Сохраняем
+                                        listOfDataAboutYGSN.add(dataAboutYGSN)
+
                                         for (triple in dataAboutYGSN) {
                                             // Кол-во студентов этого УГСН на текущей итерации
                                             val numbersBudgetStudents = (triple.first * triple.third).toInt()
@@ -264,48 +268,107 @@ fun getPersonalityUniversityData(
                                             val universityYGSNMIREAData = UniversityYGSNMIREAData(ygsnId = ygsnId,
                                                 contingentStudents = contingent, dolyaContingenta = dolyaContingenta,
                                                 numbersBudgetStudents = correctNumbersBudgetStudents,
-                                                averageScoreBudgetEGE = correctAverageScoreBudgetEGE
-                                            )
+                                                averageScoreBudgetEGE = correctAverageScoreBudgetEGE)
 
                                             listUniversityYGSNMIREAData.add(universityYGSNMIREAData)
                                         }
                                     }
                                 }
 
-                                // Если хоть 1 УГСН был пересчитан, иначе нет смысла добавлять этот вуз
+                                // Если хоть 1 УГСН был пересчитан
                                 if (listUniversityYGSNMIREAData.isNotEmpty()) {
-                                    println("total: $total")
 
-                                    val universityData = UniversityData(
-                                        name = nameUniversity,
-                                        region = region,
-                                        hostel = hostel,
-                                        yearOfData = year - 1,
-                                        averageAllStudentsEGE = averageAllStudentsEGE,
-                                        dolyaOfflineEducation = dolyaOfflineEducation,
-                                        averageBudgetEGE = averageBudgetEGE,
-                                        averageBudgetWithoutSpecialRightsEGE = averageBudgetWithoutSpecialRightsEGE,
-                                        averagedMinimalEGE = averagedMinimalEGE,
-                                        countVserosBVI = countVserosBVI,
-                                        countOlimpBVI = countOlimpBVI,
-                                        countCelevoiPriem = countCelevoiPriem,
-                                        dolyaCelevoiPriem = dolyaCelevoiPriem,
-                                        ydelniyVesInostrancyWithoutSNG = ydelniyVesInostrancyWithoutSNG,
-                                        ydelniyVesInostrancySNG = ydelniyVesInostrancySNG,
-                                        dataSource = "MIREA"
-                                    )
+                                    // Масштабируем кол-во людей на всех УГСН вуза
 
-                                    println(universityData)
+                                    // Получаем кол-во людей на всех УГСН вуза за этот год
+                                    val numbersBudgetByHSE = selectUniversityNumberBudget(hseNameUniversity, year - 1)
 
-                                    val insertedIdUniversity = insertUniversity(universityData)
+                                    if (numbersBudgetByHSE != 0) {
 
-                                    for (ygsn in listUniversityYGSNMIREAData) {
-                                        ygsn.universityId = insertedIdUniversity
+                                        var totalScaledNumbersBudgetUniversity = 0
+
+                                        // Если кол-во подсчитанных людей не совпадает с ожидаемым
+                                        if (total != numbersBudgetByHSE) {
+                                            val scaleCoefficient = total / numbersBudgetByHSE.toDouble()
+                                            var indexTriple = 0
+
+                                            // Идем по всем УГСН вуза
+                                            for (ygsnData in listUniversityYGSNMIREAData) {
+                                                println("Средний балл до масштабирования: ${ygsnData.averageScoreBudgetEGE}")
+
+                                                var totalScaledNumbersBudgetStudents = 0
+                                                var scaledAverageScoreBudgetEGE = 0.0
+
+                                                // По всем долям куда входит данный УГСН
+                                                for (triple in listOfDataAboutYGSN[indexTriple]) {
+
+                                                    // Кол-во студентов этого УГСН на текущей итерации
+                                                    val scaledNumbersBudgetStudents = ((triple.first * triple.third) / scaleCoefficient).toInt()
+
+                                                    // Считаем общее кол-во студентов этого УГСН
+                                                    totalScaledNumbersBudgetStudents += scaledNumbersBudgetStudents
+
+                                                    // Масштабированный средний балл
+                                                    scaledAverageScoreBudgetEGE += triple.second * scaledNumbersBudgetStudents
+
+                                                    // Считаем масштабированное кол-во студентов
+                                                    totalScaledNumbersBudgetUniversity += totalScaledNumbersBudgetStudents
+                                                }
+
+                                                // Посчитали средний балл
+                                                scaledAverageScoreBudgetEGE /= totalScaledNumbersBudgetStudents
+
+                                                // Округляем до 2 знаков
+                                                if (!scaledAverageScoreBudgetEGE.isNaN()) {
+                                                    //scaledAverageScoreBudgetEGE = 100 * scaledAverageScoreBudgetEGE.roundToInt() / 100.0
+
+                                                    println("Средний балл после масштабирования: $scaledAverageScoreBudgetEGE \n")
+
+                                                    ygsnData.apply {
+                                                        numbersBudgetStudents = totalScaledNumbersBudgetStudents
+                                                        averageScoreBudgetEGE = scaledAverageScoreBudgetEGE
+                                                    }
+                                                }
+
+                                                indexTriple += 1
+                                            }
+                                        }
+
+                                        println("Число студентов до масштабирования: $total \n" +
+                                                "Число студентов после масштабирования: $totalScaledNumbersBudgetUniversity \n" +
+                                                "Эталонное значение: $numbersBudgetByHSE \n\n")
+
+                                        val universityData = UniversityData(
+                                            name = nameUniversity,
+                                            region = region,
+                                            hostel = hostel,
+                                            yearOfData = year - 1,
+                                            averageAllStudentsEGE = averageAllStudentsEGE,
+                                            dolyaOfflineEducation = dolyaOfflineEducation,
+                                            averageBudgetEGE = averageBudgetEGE,
+                                            averageBudgetWithoutSpecialRightsEGE = averageBudgetWithoutSpecialRightsEGE,
+                                            averagedMinimalEGE = averagedMinimalEGE,
+                                            countVserosBVI = countVserosBVI,
+                                            countOlimpBVI = countOlimpBVI,
+                                            countCelevoiPriem = countCelevoiPriem,
+                                            dolyaCelevoiPriem = dolyaCelevoiPriem,
+                                            ydelniyVesInostrancyWithoutSNG = ydelniyVesInostrancyWithoutSNG,
+                                            ydelniyVesInostrancySNG = ydelniyVesInostrancySNG,
+                                            dataSource = "MIREA"
+                                        )
+
+                                        println(universityData)
+
+                                        val insertedIdUniversity = insertUniversity(universityData)
+
+                                        for (ygsn in listUniversityYGSNMIREAData) {
+                                            ygsn.universityId = insertedIdUniversity
+                                        }
+
+                                        insertUniversityYGSNMIREA(listUniversityYGSNMIREAData)
+
+                                        countAddedUniversities++
                                     }
-
-                                    insertUniversityYGSNMIREA(listUniversityYGSNMIREAData)
-
-                                    countAddedUniversities++
 
                                 } else {
                                     println("Список УГСН пуст, вуз пропускается")
