@@ -20,6 +20,7 @@ fun insertUniversityYGSNMIREA(universitiesYGSNMIREAData: MutableList<UniversityY
                     it[dolyaContingenta] = universityYGSN.dolyaContingenta
                     it[numbersBudgetStudents] = universityYGSN.numbersBudgetStudents
                     it[averageScoreBudgetEGE] = universityYGSN.averageScoreBudgetEGE
+                    it[year] = universityYGSN.year
                 }
             }
         }

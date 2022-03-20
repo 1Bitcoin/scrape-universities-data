@@ -6,6 +6,7 @@ object UniversityYGSNMIREA : Table("university_ygsn_mirea") {
     var id = integer("id").autoIncrement().primaryKey()
     var universityId = integer("university_id") references University.id
     var ygsnId = integer("ygsn_id") references ygsn.id
+    var year = integer("year")
 
     var contingentStudents = double("contingentstudents")
     var dolyaContingenta = double("dolyacontingenta")

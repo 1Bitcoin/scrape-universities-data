@@ -12,13 +12,13 @@ fun setUniversityDataSource(): DataAboutUniversity {
 
         mutableListOf(
 //            "https://monitoring.miccedu.ru/iam/2021/_vpo/material.php?type=1&id=1",
-            "https://monitoring.miccedu.ru/iam/2021/_vpo/material.php?type=1&id=2",
+//            "https://monitoring.miccedu.ru/iam/2021/_vpo/material.php?type=1&id=2",
 //            "https://monitoring.miccedu.ru/iam/2021/_vpo/material.php?type=1&id=4",
 //            "https://monitoring.miccedu.ru/iam/2021/_vpo/material.php?type=1&id=3",
 //            "https://monitoring.miccedu.ru/iam/2021/_vpo/material.php?type=1&id=25",
 //            "https://monitoring.miccedu.ru/iam/2021/_vpo/material.php?type=1&id=5",
 //            "https://monitoring.miccedu.ru/iam/2021/_vpo/material.php?type=1&id=6",
-//            "https://monitoring.miccedu.ru/iam/2021/_vpo/material.php?type=1&id=7"
+            "https://monitoring.miccedu.ru/iam/2021/_vpo/material.php?type=1&id=7"
         )
     )
 }

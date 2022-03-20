@@ -1,14 +1,14 @@
 package scrape.data.universities.mirea
 
-import com.google.gson.JsonParser
 import datasource.vo.DataAboutUniversity
 import dto.UniversityData
 import dto.UniversityYGSNMIREAData
 import org.jetbrains.database.*
 import org.jsoup.Jsoup
 import parser.parseCSVFileWithDolyaYGSN
-import java.sql.QueryExecutor
+import scrape.data.ssl.SSLHelper
 import kotlin.math.roundToInt
+
 
 fun scrapeUniversityMIREA(dataAboutUniversity: DataAboutUniversity) {
     val mutableListUniversitiesData: MutableList<UniversityData> = mutableListOf()
@@ -31,7 +31,8 @@ fun getPersonalityUniversityData(
 
     // Идем по округам
     for (district in monitoring) {
-        val districtPage = Jsoup.connect(district).get()
+        val helper = SSLHelper()
+        val districtPage = helper.getConnection(district)!!.get()
         val universitiesURL = districtPage.select("table[class=an] > tbody")
 
         // Идем по универам
@@ -53,7 +54,7 @@ fun getPersonalityUniversityData(
 
                 println(url)
 
-                val universityPage = Jsoup.connect(url).get()
+                val universityPage = helper.getConnection(url)!!.get()
 
                 if (universityPage.select("table#info > tbody > tr").size > 0) {
                     val region = universityPage
@@ -266,7 +267,8 @@ fun getPersonalityUniversityData(
                                             val ygsnId = ygsn.take(2).toInt()
 
                                             val universityYGSNMIREAData = UniversityYGSNMIREAData(ygsnId = ygsnId,
-                                                contingentStudents = contingent, dolyaContingenta = dolyaContingenta,
+                                                year = year - 1, contingentStudents = contingent,
+                                                dolyaContingenta = dolyaContingenta,
                                                 numbersBudgetStudents = correctNumbersBudgetStudents,
                                                 averageScoreBudgetEGE = correctAverageScoreBudgetEGE)
 

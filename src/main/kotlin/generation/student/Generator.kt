@@ -5,21 +5,21 @@ import dto.student.StudentData
 import dto.student.StudentEGEData
 import dto.student.StudentYGSNData
 import org.jetbrains.database.student.*
+import ru.batch.executor.MyQueryExecutor
 import kotlin.random.Random
 
 class Generator {
-    private val studentList: MutableList<StudentData> = mutableListOf()
-    private val egeList: MutableList<StudentEGEData> = mutableListOf()
-    private val ygsnList: MutableList<StudentYGSNData> = mutableListOf()
-
-
     private val distribList: MutableList<DistribStudentData> = selectDistrib()
-    private val EGEMap: MutableMap<Int, MutableSet<Int>> = mutableMapOf()
+    private val mapEGE: MutableMap<Int, MutableSet<Int>> = mutableMapOf()
+
+    private val executor: MyQueryExecutor = MyQueryExecutor()
+
 
     val seniorRange = 70..80
     val geniusRange = 80..99
 
     fun generateStudent() {
+
         // Заглушка
         val emptyRange: IntRange = 1..0
 
@@ -28,42 +28,40 @@ class Generator {
 
         // Обходим каждый регион распределения
         for (distrib in distribList) {
+            println("Обработка региона: ${distrib.region}")
+
+            var insertedStudentIdList: MutableList<Long> = mutableListOf()
+
+            val studentList: MutableList<StudentData> = mutableListOf()
+            val egeList: MutableList<StudentEGEData> = mutableListOf()
+            val ygsnList: MutableList<StudentYGSNData> = mutableListOf()
+
             val currentRegion = distrib.region
+
             val countVYP = distrib.countVYP
+            println("Число выпускников: $countVYP")
+
             val count100Ball = distrib.count100Ball
             val countParticipant = distrib.countParticipant
 
-            val countFail = countVYP * DistribScore.FAIL.procent
-            val countMiddle = countVYP * DistribScore.MIDDLE.procent
-            val countSenior = countVYP * DistribScore.SENIOR.procent
-            val countGenius = countVYP * DistribScore.GENIUS.procent
+            val countFail = countVYP * DistribScore.FAIL.procent / 100
+            val countMiddle = countVYP * DistribScore.MIDDLE.procent / 100
+            val countSenior = countVYP * DistribScore.SENIOR.procent / 100
+            val countGenius = countVYP * DistribScore.GENIUS.procent / 100
 
-            for (j in 1..countMiddle) {
+            // Создаем студентов в каждом регионе по числу выпускников
+            println("Создание студентов группы middle")
+            for (i in 1..countMiddle) {
                 val studentData = StudentData().apply {
                     region = currentRegion
 
                     // Пока что никто не уезжает в другие регионы
                     change = false
                 }
-
-                val studentId = insertStudent(studentData)
-
-                // Создаем сданные ЕГЭ и их результаты
-                val listStudentEGEData = buildStudent(studentId, emptyRange)
-
-                // Сохраянем результаты ЕГЭ
-                setActualEGE(listStudentEGEData)
-
-                // Получаем ид выбранных егэ для поиска подходящих угсн
-                val setEGEId = getSelectedEGEId(listStudentEGEData)
-
-                // Ищем УГСН ид, которые подходят под имеющиеся ЕГЭ
-                val actualYGSNId = getActualYGSN(setEGEId)
-
-                // Задаем интересующие УГСН
-                setActualYGSN(actualYGSNId, studentId)
+                studentList.add(studentData)
             }
 
+            println("Создание студентов группы senior")
             for (j in 1..countSenior) {
                 val studentData = StudentData().apply {
                     region = currentRegion
@@ -71,69 +69,78 @@ class Generator {
                     // Пока что никто не уезжает в другие регионы
                     change = false
                 }
-
-                val studentId = insertStudent(studentData)
-
-                // Создаем сданные ЕГЭ и их результаты
-                val listStudentEGEData = buildStudent(studentId, seniorRange)
-
-                // Сохраянем результаты ЕГЭ
-                setActualEGE(listStudentEGEData)
-
-                // Получаем ид выбранных егэ для поиска подходящих угсн
-                val setEGEId = getSelectedEGEId(listStudentEGEData)
-
-                // Ищем УГСН ид, которые подходят под имеющиеся ЕГЭ
-                val actualYGSNId = getActualYGSN(setEGEId)
-
-                // Задаем интересующие УГСН
-                setActualYGSN(actualYGSNId, studentId)
+                studentList.add(studentData)
             }
 
-
-            // Создаем студентов в каждом регионе по числу выпускников
-            for (i in 1..countGenius) {
+            println("Создание студентов группы genius")
+            for (k in 1..countGenius) {
                 val studentData = StudentData().apply {
                     region = currentRegion
 
                     // Пока что никто не уезжает в другие регионы
                     change = false
                 }
-
-                val studentId = insertStudent(studentData)
-
-                // Создаем сданные ЕГЭ и их результаты
-                val listStudentEGEData = buildStudent(studentId, geniusRange)
-
-                // Сохраянем результаты ЕГЭ
-                setActualEGE(listStudentEGEData)
-
-                // Получаем ид выбранных егэ для поиска подходящих угсн
-                val setEGEId = getSelectedEGEId(listStudentEGEData)
-
-                // Ищем УГСН ид, которые подходят под имеющиеся ЕГЭ
-                val actualYGSNId = getActualYGSN(setEGEId)
-
-                // Задаем интересующие УГСН
-                setActualYGSN(actualYGSNId, studentId)
+                studentList.add(studentData)
             }
+
+            println("Сохранение студентов в БД. Количество студентов ${studentList.size}")
+            insertedStudentIdList = executor.batchInsertStudent(studentList)
+
+            var currentIndex = 0
+
+            println("Создание сданных ЕГЭ и интересующих УГСН для студентов группы middle")
+            for (i in 1..countMiddle) {
+                val currentStudentId = insertedStudentIdList[currentIndex]
+                createFullInformation(currentStudentId.toInt(), emptyRange, egeList, ygsnList)
+                currentIndex++
+            }
+
+            println("Создание сданных ЕГЭ и интересующих УГСН для студентов группы senior")
+            for (j in 1..countSenior) {
+                val currentStudentId = insertedStudentIdList[currentIndex]
+                createFullInformation(currentStudentId.toInt(), seniorRange, egeList, ygsnList)
+                currentIndex++
+            }
+
+            println("Создание сданных ЕГЭ и интересующих УГСН для студентов группы genius")
+            for (k in 1..countGenius) {
+                val currentStudentId = insertedStudentIdList[currentIndex]
+                createFullInformation(currentStudentId.toInt(), geniusRange, egeList, ygsnList)
+                currentIndex++
+            }
+
+            println("Сохранение сданных ЕГЭ в БД. Количество записей ${egeList.size}")
+            executor.batchInsertEGE(egeList)
+
+            println("Сохранение интересующих УГСН в БД. Количество записей ${ygsnList.size}")
+            executor.batchInsertYGSN(ygsnList)
         }
     }
 
-    private fun setActualEGE(listStudentEGEData: MutableList<StudentEGEData>) {
-        insertStudentEGE(listStudentEGEData)
+    private fun createFullInformation(studentId: Int, range: IntRange, egeList: MutableList<StudentEGEData>,
+                                      ygsnList: MutableList<StudentYGSNData>) {
+        // Создаем сданные ЕГЭ и их результаты для студента
+        val listStudentEGEData = buildStudent(studentId, range)
+
+        // Сохраняем в список
+        egeList.addAll(listStudentEGEData)
+
+        // Получаем ид выбранных егэ для поиска подходящих угсн
+        val setEGEId = getSelectedEGEId(listStudentEGEData)
+
+        // Ищем УГСН ид, которые подходят под имеющиеся ЕГЭ
+        val listStudentYGSNData = getActualYGSN(setEGEId, studentId)
+
+        // Сохраняем в список
+        ygsnList.addAll(listStudentYGSNData)
     }
 
-    private fun setActualYGSN(actualYGSNId: MutableList<Int>, studentId: Int) {
-        insertStudentYGSN(actualYGSNId, studentId)
-    }
+    private fun getActualYGSN(setEGEId: MutableSet<Int>, studentId: Int): MutableList<StudentYGSNData> {
+        val actualYGSNId = mutableListOf<StudentYGSNData>()
 
-    private fun getActualYGSN(setEGEId: MutableSet<Int>): MutableList<Int> {
-        val actualYGSNId = mutableListOf<Int>()
-
-        for (item in EGEMap) {
+        for (item in mapEGE) {
             if (item.value.containsAll(setEGEId)) {
-                actualYGSNId.add(item.key)
+                actualYGSNId.add(StudentYGSNData(studentId, item.key))
             }
         }
         return actualYGSNId
@@ -142,7 +149,7 @@ class Generator {
     private fun fillMapEGE() {
         // id УГСН в таблице
         for (id in 1..58) {
-            EGEMap[id] = selectEGE(id)
+            mapEGE[id] = selectEGE(id)
         }
     }
 
@@ -464,5 +471,46 @@ class Generator {
         listStudentEGEData.add(data4)
         listStudentEGEData.add(data5)
         return listStudentEGEData
+    }
+
+    fun testStudent() {
+        val test = mutableListOf<StudentData>()
+
+        for (i in 1..3) {
+            test.add(StudentData())
+        }
+
+        val array = executor.batchInsertStudent(test)
+
+        for (i in array) {
+            print("$i ")
+        }
+    }
+
+    fun testEGE() {
+        val test = mutableListOf<StudentEGEData>()
+
+        for (i in 1..60000) {
+            test.add(StudentEGEData().apply {
+                studentId = 333333
+                egeId = 1
+                score = 80
+            })
+        }
+
+        executor.batchInsertEGE(test)
+    }
+
+    fun testYGSN() {
+        val test = mutableListOf<StudentYGSNData>()
+
+        for (i in 1..60000) {
+            test.add(StudentYGSNData().apply {
+                studentId = 333333
+                ygsnId = 1
+            })
+        }
+
+        executor.batchInsertYGSN(test)
     }
 }

@@ -249,7 +249,7 @@ CREATE TABLE IF NOT EXISTS university_ygsn_mirea(
       FOREIGN KEY (university_id) REFERENCES university (Id)
 );
 
-CREATE TABLE IF NOT EXISTS ygsn_ege_mandatory(
+CREATE TABLE IF NOT EXISTS ygsn_ege(
     id SERIAL PRIMARY KEY,
     ege_id INTEGER,
     ygsn_id INTEGER,
@@ -258,14 +258,7 @@ CREATE TABLE IF NOT EXISTS ygsn_ege_mandatory(
     FOREIGN KEY (ege_id) REFERENCES ege (Id)
 );
 
-CREATE TABLE IF NOT EXISTS ygsn_ege_additional(
-     id SERIAL PRIMARY KEY,
-     ege_id INTEGER,
-     ygsn_id INTEGER,
 
-     FOREIGN KEY (ygsn_id) REFERENCES ygsn (Id),
-     FOREIGN KEY (ege_id) REFERENCES ege (Id)
-);
 
 
 
