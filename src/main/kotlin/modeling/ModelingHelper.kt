@@ -1,33 +1,43 @@
 package modeling
 
+import modeling.dto.InformationStudent
 import modeling.dto.InformationUniversity
 import org.jetbrains.database.student.selectEGE
 import ru.batch.executor.MyQueryExecutor
 
 class ModelingHelper {
 
-    // Списки с полной информацией о ВУЗах за определенный год
-    lateinit var informationUniversityList2020: MutableList<InformationUniversity>
-    lateinit var informationUniversityList2019: MutableList<InformationUniversity>
+    // Ключ - регион нахождения ВУЗа, значение - массив с информацией о вузах в данном регионе
+    lateinit var informationUniversityMap2020: MutableMap<String, MutableList<InformationUniversity>>
+    lateinit var informationUniversityMap2019: MutableMap<String, MutableList<InformationUniversity>>
+
+    // Список с полной информацией о студентах
+    lateinit var informationStudent: MutableList<InformationStudent>
 
     // Соответствия ид УГСН - множество ид ЕГЭ
     private val mapEGE: MutableMap<Int, MutableSet<Int>> = fillMapEGE()
 
     private var executor = MyQueryExecutor()
 
-    fun enrichDataSet() {
-        informationUniversityList2020 = executor.selectInformationUniversities(2020)
-        informationUniversityList2019 = executor.selectInformationUniversities(2019)
+    fun enrichUniversityDataSet() {
+        informationUniversityMap2020 = executor.selectInformationUniversities(2020)
+        informationUniversityMap2019 = executor.selectInformationUniversities(2019)
+    }
+
+    fun enrichStudentDataSet(limit: Boolean) {
+        informationStudent = executor.selectInformationStudent(limit)
     }
 
     fun prepareInformationUniversity() {
         println("Вычисление списка ЕГЭ для каждого УГСН")
-        for (item in informationUniversityList2020) {
-            item.calculateAcceptEGESet(mapEGE)
+        for (region in informationUniversityMap2020) {
+            for (university in region.value)
+                university.calculateAcceptEGESet(mapEGE)
         }
 
-        for (item in informationUniversityList2019) {
-            item.calculateAcceptEGESet(mapEGE)
+        for (region in informationUniversityMap2019) {
+            for (university in region.value)
+                university.calculateAcceptEGESet(mapEGE)
         }
     }
 

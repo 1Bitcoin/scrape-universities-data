@@ -5,8 +5,11 @@ import dto.UniversityYGSNMIREAData
 import dto.student.StudentData
 import dto.student.StudentEGEData
 import dto.student.StudentYGSNData
+import modeling.dto.EGEResult
+import modeling.dto.InformationStudent
 import modeling.dto.InformationUniversity
 import java.sql.DriverManager
+import java.sql.ResultSet
 import java.sql.Statement
 
 class MyQueryExecutor {
@@ -16,19 +19,23 @@ class MyQueryExecutor {
         "qwerty"
     )
 
-    fun selectInformationUniversities(year: Int): MutableList<InformationUniversity> {
+    fun selectInformationUniversities(year: Int): MutableMap<String, MutableList<InformationUniversity>> {
         println("Получение из БД информации о универах и их УГСН")
+
+        val informationUniversityMap: MutableMap<String, MutableList<InformationUniversity>> = mutableMapOf()
+
         val prepareStatement = connection.prepareStatement("select * from university where yearofdata = ?")
         prepareStatement.setInt(1, year)
 
         val resultSet = prepareStatement.executeQuery()
 
-        val list: MutableList<InformationUniversity> = mutableListOf()
+        val start = System.currentTimeMillis()
 
         // Обработка каждого вуза
         resultSet.use {
             while (it.next()) {
                 val universityData = UniversityData().apply {
+                    universityId = it.getInt("id")
                     name = it.getString("name")
                     region = it.getString("region")
                     yearOfData = it.getInt("yearofdata")
@@ -53,10 +60,23 @@ class MyQueryExecutor {
                 // Получаем все УГСН текущего вуза
                 val ygsnList = selectUniversityYGSN(universityId, year)
 
-                list.add(InformationUniversity(universityData, ygsnList))
+                // Если в мапе есть ключ-регион, то кладем в соответствующий ему массив информацию об универе
+                // иначе - добавляем ключ и начальное значение
+
+                val key = universityData.region
+                if (informationUniversityMap.containsKey(key)) {
+                    informationUniversityMap[key]!!.add(InformationUniversity(universityData, ygsnList))
+                } else {
+                    informationUniversityMap[key] = mutableListOf(InformationUniversity(universityData, ygsnList))
+                }
             }
         }
-        return list
+        val end = System.currentTimeMillis()
+
+        println("Информация об универах получена!")
+        println("Получения информации заняло = " + (end - start) / 1000 + " секунд")
+
+        return informationUniversityMap
     }
 
     private fun selectUniversityYGSN(currentUniversityId: Int, currentYear: Int): MutableList<UniversityYGSNMIREAData> {
@@ -83,6 +103,94 @@ class MyQueryExecutor {
                     averageScoreBudgetEGE = it.getDouble("averagescorebudgetege")
                 }
                 list.add(universityYGSNData)
+            }
+        }
+        return list
+    }
+
+    fun selectInformationStudent(limit: Boolean): MutableList<InformationStudent> {
+        val resultSet: ResultSet = if (limit) {
+            println("Получение первых 100 записей из БД с информацией о студентах, интересующих их УСГН и сданных ЕГЭ")
+
+            val prepareStatement = connection.prepareStatement("select * from student limit ?")
+            prepareStatement.setInt(1, 100)
+            prepareStatement.executeQuery()
+
+        } else {
+            println("Получение полной информации из БД информации о студентах, интересующих их УСГН и сданных ЕГЭ")
+            connection.prepareStatement("select * from student").executeQuery()
+        }
+
+        val list: MutableList<InformationStudent> = mutableListOf()
+
+        val start = System.currentTimeMillis()
+
+        // Обработка каждого студента
+        resultSet.use {
+            while (it.next()) {
+                val studentData = StudentData().apply {
+                    studentId = it.getInt("id")
+                    region = it.getString("region")
+                    change = it.getBoolean("change_region")
+                }
+
+                val studentId = it.getInt("id")
+
+                // Получаем все УГСН, интересующие студента
+                val ygsnList = selectStudentYGSN(studentId)
+
+                // Получаем все результаты ЕГЭ студента
+                val egeList = selectStudentEGE(studentId)
+
+                list.add(InformationStudent(studentData, ygsnList, egeList))
+                println("Получена полная информация о студента из БД!")
+            }
+        }
+        val end = System.currentTimeMillis()
+
+        println("Информация о студентах получена!")
+        println("Получения информации заняло = " + (end - start) / 1000 + " секунд")
+
+        return list
+    }
+
+    private fun selectStudentEGE(studentId: Int): MutableList<EGEResult> {
+        val prepareStatement = connection.prepareStatement("select * from student_ege where " +
+                "student_id = ?")
+        prepareStatement.setInt(1, studentId)
+
+        val resultSet = prepareStatement.executeQuery()
+
+        val list: MutableList<EGEResult> = mutableListOf()
+
+        // Обработка каждой записи
+        resultSet.use {
+            while (it.next()) {
+                val egeId = it.getInt("ege_id")
+                val score = it.getInt("score_ege")
+
+                val egeResult = EGEResult(egeId, score)
+
+                list.add(egeResult)
+            }
+        }
+        return list
+    }
+
+    private fun selectStudentYGSN(studentId: Int): MutableList<Int> {
+        val prepareStatement = connection.prepareStatement("select * from student_ygsn where " +
+                "student_id = ?")
+        prepareStatement.setInt(1, studentId)
+
+        val resultSet = prepareStatement.executeQuery()
+
+        val list: MutableList<Int> = mutableListOf()
+
+        // Обработка каждой записи
+        resultSet.use {
+            while (it.next()) {
+                val ygsnId = it.getInt("ygsn_id")
+                list.add(ygsnId)
             }
         }
         return list

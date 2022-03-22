@@ -1,15 +1,8 @@
-import dao.Student
 import datasource.setUniversityDataSource
 import datasource.setUniversityYGSNDataSource
-import dto.UniversityYGSNMIREAData
-import dto.student.StudentData
 import generation.student.Generator
 import modeling.ModelingHelper
-import org.jetbrains.database.insertNameUniversitiesMIREA
-import org.jetbrains.database.insertUniversityYGSNMIREA
 import org.jetbrains.exposed.sql.Database
-import scrape.data.universities.mirea.scrapeUniversityMIREA
-import java.sql.DriverManager
 
 
 fun main() {
@@ -23,22 +16,33 @@ fun main() {
     val dataAboutUniversity = setUniversityDataSource()
     val dataAboutUniversityYGSN = setUniversityYGSNDataSource()
 
+    //val generator = Generator().generateStudent()
+
     val helper = ModelingHelper()
 
-    helper.enrichDataSet()
+//    helper.enrichStudentDataSet(limit = false)
+//
+//    for (item in helper.informationStudent) {
+//        println(item.studentData)
+//        println(item.ygsnList)
+//        for (egeItem in item.egeList)
+//            println("egeId: ${egeItem.egeId} score: ${egeItem.score}")
+//        println()
+//    }
+
+    helper.enrichUniversityDataSet()
     helper.prepareInformationUniversity()
 
-    for (item in helper.informationUniversityList2020) {
-        println(item.universityData)
-        println(item.ygsnList)
+    for (item in helper.informationUniversityMap2020) {
+        println("Регион: ${item.key}")
+        for (university in item.value)
+            println("Вузы: ${university.universityData}")
+        println()
     }
-
 
     //scrapeUniversityMIREA(dataAboutUniversity)
 
     //scrapeUniversityYGSN(dataAboutUniversityYGSN)
-
-    //val generator = Generator().generateStudent()
 
 //    val test = mutableListOf<StudentData>()
 //

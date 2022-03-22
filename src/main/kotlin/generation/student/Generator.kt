@@ -44,10 +44,10 @@ class Generator {
             val count100Ball = distrib.count100Ball
             val countParticipant = distrib.countParticipant
 
-            val countFail = countVYP * DistribScore.FAIL.procent / 100
-            val countMiddle = countVYP * DistribScore.MIDDLE.procent / 100
-            val countSenior = countVYP * DistribScore.SENIOR.procent / 100
-            val countGenius = countVYP * DistribScore.GENIUS.procent / 100
+            val countFail = countVYP * DistribScore.FAIL.procent
+            val countMiddle = (countVYP * DistribScore.MIDDLE.procent).toInt()
+            val countSenior = (countVYP * DistribScore.SENIOR.procent).toInt()
+            val countGenius = (countVYP * DistribScore.GENIUS.procent).toInt()
 
             // Создаем студентов в каждом регионе по числу выпускников
             println("Создание студентов группы middle")
@@ -114,6 +114,8 @@ class Generator {
 
             println("Сохранение интересующих УГСН в БД. Количество записей ${ygsnList.size}")
             executor.batchInsertYGSN(ygsnList)
+
+            return
         }
     }
 
@@ -131,16 +133,63 @@ class Generator {
         // Ищем УГСН ид, которые подходят под имеющиеся ЕГЭ
         val listStudentYGSNData = getActualYGSN(setEGEId, studentId)
 
+        if (listStudentYGSNData.isEmpty()) {
+            println("empty ygsn: student_id $studentId")
+        }
+
+        // !!! Заглушка !!!
+        // из всех подходящих по сданным ЕГЭ УГСН выбираем 3 случайных (аля 3 направления)
+        val resultListYGSNForStudent = getThreeMostActualYGSN(listStudentYGSNData)
+
         // Сохраняем в список
-        ygsnList.addAll(listStudentYGSNData)
+        ygsnList.addAll(resultListYGSNForStudent)
+    }
+
+    private fun getThreeMostActualYGSN(listStudentYGSNData: MutableList<StudentYGSNData>): MutableList<StudentYGSNData> {
+        val resultListYGSNForStudent = mutableListOf<StudentYGSNData>()
+
+        for (i in 1..3) {
+            var randomElement = listStudentYGSNData.random()
+
+            // Ищем элемент(ид угсн), которых еще не записывали в ответ
+            while (resultListYGSNForStudent.contains(randomElement)) {
+                randomElement = listStudentYGSNData.random()
+            }
+            resultListYGSNForStudent.add(randomElement)
+        }
+        return resultListYGSNForStudent
     }
 
     private fun getActualYGSN(setEGEId: MutableSet<Int>, studentId: Int): MutableList<StudentYGSNData> {
         val actualYGSNId = mutableListOf<StudentYGSNData>()
 
         for (item in mapEGE) {
-            if (item.value.containsAll(setEGEId)) {
-                actualYGSNId.add(StudentYGSNData(studentId, item.key))
+            // УГСН, на которые требуется только 3 ЕГЭ
+            if (item.value.size < 5) {
+                // Обход по всем выбранным студентов ЕГЭ
+                for (egeId in setEGEId) {
+                    // Рассматриваем без обязательных ЕГЭ (ид 1 и 2)
+                    if (egeId != 1 && egeId != 2) {
+                        if (egeId in item.value) {
+                            actualYGSNId.add(StudentYGSNData(studentId, item.key))
+                        }
+                    }
+                }
+            } else {
+                // Нужно чтобы хотя бы 2 сданных ЕГЭ входили во множество с возможными ЕГЭ для этого УГСН
+                var flagCount = 0
+                // Обход по всем выбранным студентов ЕГЭ
+                for (egeId in setEGEId) {
+                    // Рассматриваем без обязательных ЕГЭ (ид 1 и 2)
+                    if (egeId != 1 && egeId != 2) {
+                        if (egeId in item.value) {
+                            flagCount++
+                            if (flagCount == 2) {
+                                actualYGSNId.add(StudentYGSNData(studentId, item.key))
+                            }
+                        }
+                    }
+                }
             }
         }
         return actualYGSNId

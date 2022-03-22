@@ -1,6 +1,7 @@
 package dto
 
 data class UniversityData(
+    var universityId: Int = -1,
     var name: String = "",
     var region: String = "",
     var yearOfData: Int = 0,

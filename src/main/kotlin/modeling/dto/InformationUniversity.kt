@@ -15,8 +15,8 @@ class InformationUniversity(currentUniversityData: UniversityData, currentYGSNLi
     // Конкурсный список, в котором будут находиться заявления абитуриентов
     private val competitiveList: MutableList<Statement> = mutableListOf()
 
-    fun submitRequest(currentStudentId: Int, currentScore: Int, currentState: State) {
-        competitiveList.add(Statement(currentStudentId, currentScore, currentState))
+    fun submitRequest(currentStudentId: Int, currentYGSNId: Int, currentScore: Int, currentState: State) {
+        competitiveList.add(Statement(currentStudentId, currentYGSNId, currentScore, currentState))
 
         // Неэффективно - чтобы списки были упорядочены по сумме баллов сортируем их
         competitiveList.sortBy { it.score }
