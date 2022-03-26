@@ -2,8 +2,6 @@ package modeling.dto
 
 import dto.UniversityData
 import dto.UniversityYGSNMIREAData
-import dto.student.StudentYGSNData
-import org.jetbrains.database.student.selectEGE
 
 class InformationUniversity(currentUniversityData: UniversityData, currentYGSNList: MutableList<UniversityYGSNMIREAData>) {
     // Информация об универе
@@ -15,11 +13,11 @@ class InformationUniversity(currentUniversityData: UniversityData, currentYGSNLi
     // Конкурсный список, в котором будут находиться заявления абитуриентов
     private val competitiveList: MutableList<Statement> = mutableListOf()
 
-    fun submitRequest(currentStudentId: Int, currentYGSNId: Int, currentScore: Int, currentState: State) {
+    fun submitRequest(currentStudentId: Int, currentYGSNId: Int, currentScore: Double, currentState: State) {
         competitiveList.add(Statement(currentStudentId, currentYGSNId, currentScore, currentState))
 
         // Неэффективно - чтобы списки были упорядочены по сумме баллов сортируем их
-        competitiveList.sortBy { it.score }
+        competitiveList.sortByDescending { it.score }
     }
 
     fun changeState(currentStudentId: Int, newState: State) {

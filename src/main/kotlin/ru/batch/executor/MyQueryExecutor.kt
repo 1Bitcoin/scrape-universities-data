@@ -143,7 +143,7 @@ class MyQueryExecutor {
                 val egeList = selectStudentEGE(studentId)
 
                 list.add(InformationStudent(studentData, ygsnList, egeList))
-                println("Получена полная информация о студента из БД!")
+                println("Получена полная информация о студенте из БД!")
             }
         }
         val end = System.currentTimeMillis()

@@ -5,7 +5,7 @@ import modeling.dto.InformationUniversity
 import org.jetbrains.database.student.selectEGE
 import ru.batch.executor.MyQueryExecutor
 
-class ModelingHelper {
+class ModelingHelper(limitStudent: Boolean) {
 
     // Ключ - регион нахождения ВУЗа, значение - массив с информацией о вузах в данном регионе
     lateinit var informationUniversityMap2020: MutableMap<String, MutableList<InformationUniversity>>
@@ -15,20 +15,40 @@ class ModelingHelper {
     lateinit var informationStudent: MutableList<InformationStudent>
 
     // Соответствия ид УГСН - множество ид ЕГЭ
-    private val mapEGE: MutableMap<Int, MutableSet<Int>> = fillMapEGE()
+    val mapEGE: MutableMap<Int, MutableSet<Int>> = fillMapEGE()
 
-    private var executor = MyQueryExecutor()
+    private var executor: MyQueryExecutor = MyQueryExecutor()
+
+    init {
+        enrichUniversityDataSet()
+        enrichStudentDataSet(limitStudent)
+    }
 
     fun enrichUniversityDataSet() {
         informationUniversityMap2020 = executor.selectInformationUniversities(2020)
         informationUniversityMap2019 = executor.selectInformationUniversities(2019)
+
+        sortInformationUniversity()
+        prepareInformationUniversity()
+    }
+
+    private fun sortInformationUniversity() {
+        println("Сортировка вузов по среднему баллу всех студентов")
+
+        for (map in informationUniversityMap2020) {
+            map.value.sortByDescending  { it.universityData.averageAllStudentsEGE }
+        }
+
+        for (map in informationUniversityMap2019) {
+            map.value.sortByDescending  { it.universityData.averageAllStudentsEGE }
+        }
     }
 
     fun enrichStudentDataSet(limit: Boolean) {
         informationStudent = executor.selectInformationStudent(limit)
     }
 
-    fun prepareInformationUniversity() {
+    private fun prepareInformationUniversity() {
         println("Вычисление списка ЕГЭ для каждого УГСН")
         for (region in informationUniversityMap2020) {
             for (university in region.value)

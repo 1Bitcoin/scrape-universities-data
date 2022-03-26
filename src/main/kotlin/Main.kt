@@ -2,6 +2,7 @@ import datasource.setUniversityDataSource
 import datasource.setUniversityYGSNDataSource
 import generation.student.Generator
 import modeling.ModelingHelper
+import modeling.Modeller
 import org.jetbrains.exposed.sql.Database
 
 
@@ -18,7 +19,7 @@ fun main() {
 
     //val generator = Generator().generateStudent()
 
-    val helper = ModelingHelper()
+//    val helper = ModelingHelper()
 
 //    helper.enrichStudentDataSet(limit = false)
 //
@@ -30,15 +31,18 @@ fun main() {
 //        println()
 //    }
 
-    helper.enrichUniversityDataSet()
-    helper.prepareInformationUniversity()
+    val modeller = Modeller(limitStudent = true)
 
-    for (item in helper.informationUniversityMap2020) {
-        println("Регион: ${item.key}")
-        for (university in item.value)
-            println("Вузы: ${university.universityData}")
-        println()
-    }
+    modeller.modeling()
+
+//    helper.enrichUniversityDataSet()
+//
+//    for (item in helper.informationUniversityMap2020) {
+//        println("Регион: ${item.key}")
+//        for (university in item.value)
+//            println("Вузы: ${university.universityData}")
+//        println()
+//    }
 
     //scrapeUniversityMIREA(dataAboutUniversity)
 
