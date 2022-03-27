@@ -14,38 +14,59 @@ class InformationStudent(currentStudentData: StudentData, currentYGSNList: Mutab
     val egeList = currentEGEList
 
     // Кол-во ВУЗов, в которое поданы заявления
-    private var countRequests = 0
+    private var countUniversities = 0
 
     // Список с информацией куда и какое заявление подал студент
-    private var choice: MutableList<ChoiceStudent> = mutableListOf()
+    private var choice: MutableList<Pair<Int, InformationUniversity>> = mutableListOf()
 
 
-    fun addRequest(currentUniversityId: Int, currentYGSNId: Int, currentState: State) {
-        if (choice.add(ChoiceStudent(currentUniversityId, currentYGSNId, currentState))) {
+    fun addRequest(university: InformationUniversity, ygsnId: Int) {
+        var count = 0
+
+        choice.add(ygsnId to university)
+
+        // Смотрим были ли уже заявления в данный универ
+        for (item in choice) {
+            if (item.second.universityData.universityId == university.universityData.universityId) {
+                count++
+            }
+        }
+
+        if (count == 1) {
             increaseCountRequests()
         }
     }
 
-    fun revokeRequest(currentUniversityId: Int, currentYGSNId: Int) {
-        val requestForDelete = choice.find { it.universityId == currentUniversityId && it.ygsnId == currentYGSNId }
-        if (choice.remove(requestForDelete)) {
+    fun revokeRequest(university: InformationUniversity, ygsnId: Int) {
+        var count = 0
+
+        choice.remove(ygsnId to university)
+
+        // Смотрим были ли уже заявления в данный универ
+        for (item in choice) {
+            if (item.second.universityData.universityId == university.universityData.universityId) {
+                count++
+            }
+        }
+
+        if (count == 0) {
             decreaseCountRequests()
         }
     }
 
-    fun getRequestsList(): MutableList<ChoiceStudent> {
+    fun getInformationUniversitiesPair(): MutableList<Pair<Int, InformationUniversity>> {
         return choice
     }
 
-    fun getCountRequests(): Int {
-        return countRequests
+    fun getCountUniversities(): Int {
+        return countUniversities
     }
 
     private fun increaseCountRequests() {
-        countRequests++
+        countUniversities++
     }
 
     private fun decreaseCountRequests() {
-        countRequests--
+        countUniversities--
     }
 }

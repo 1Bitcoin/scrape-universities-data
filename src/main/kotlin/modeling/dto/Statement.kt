@@ -1,8 +1,10 @@
 package modeling.dto
 
-class Statement(currentStudentId: Int, currentYGSNId: Int, currentScore: Double, currentState: State) {
+class Statement(currentStudentId: Int, currentScore: Double, currentState: State,
+                currentDatePutRequest: String, currentDateUpdateRequest: String = currentDatePutRequest) {
     var studentId = currentStudentId
-    var ygsnId = currentYGSNId
     var score = currentScore
     var state = currentState
+    var datePutRequest = currentDatePutRequest
+    var dateUpdateRequest = currentDateUpdateRequest
 }

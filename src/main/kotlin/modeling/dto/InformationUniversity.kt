@@ -7,29 +7,45 @@ class InformationUniversity(currentUniversityData: UniversityData, currentYGSNLi
     // Информация об универе
     val universityData = currentUniversityData
 
-    // Информация о всех УГСН универа
-    val ygsnList = currentYGSNList
+    // Информация о всех УГСН универа и их конкурсные списки
+    private val informationYGSNMap: MutableMap<Int, InformationYGSN> = fillInformationYGSNMap(currentYGSNList)
 
-    // Конкурсный список, в котором будут находиться заявления абитуриентов
-    private val competitiveList: MutableList<Statement> = mutableListOf()
+    fun submitRequest(currentStudentId: Int, currentYGSNId: Int, currentScore: Double, currentState: State, currentPutDate: String) {
+        val informationYGSN = informationYGSNMap[currentYGSNId]
 
-    fun submitRequest(currentStudentId: Int, currentYGSNId: Int, currentScore: Double, currentState: State) {
-        competitiveList.add(Statement(currentStudentId, currentYGSNId, currentScore, currentState))
+        // Получаем конкурсный список этого УГСН
+        val competitiveList = informationYGSN!!.competitiveList
+        competitiveList.add(Statement(currentStudentId, currentScore, currentState, currentPutDate))
 
         // Неэффективно - чтобы списки были упорядочены по сумме баллов сортируем их
         competitiveList.sortByDescending { it.score }
     }
 
-    fun changeState(currentStudentId: Int, newState: State) {
+    fun getInformationYGSNMap(): MutableMap<Int, InformationYGSN> {
+        return informationYGSNMap
+    }
+
+    fun changeState(currentStudentId: Int, currentYGSNId: Int, newState: State, currentUpdateDate: String) {
+        val informationYGSN = informationYGSNMap[currentYGSNId]
+
+        // Получаем конкурсный список этого УГСН
+        val competitiveList = informationYGSN!!.competitiveList
+
         competitiveList.find { it.studentId == currentStudentId }
             .let {
                 if (it != null) {
                     it.state = newState
+                    it.dateUpdateRequest = currentUpdateDate
                 }
             }
     }
 
-    fun revokeRequest(currentStudentId: Int) {
+    fun revokeRequest(currentStudentId: Int, currentYGSNId: Int) {
+        val informationYGSN = informationYGSNMap[currentYGSNId]
+
+        // Получаем конкурсный список этого УГСН
+        val competitiveList = informationYGSN!!.competitiveList
+
         val studentForDelete = competitiveList.find { it.studentId == currentStudentId }
         competitiveList.remove(studentForDelete)
     }
@@ -39,8 +55,22 @@ class InformationUniversity(currentUniversityData: UniversityData, currentYGSNLi
     }
 
     fun calculateAcceptEGESet(mapEGE: MutableMap<Int, MutableSet<Int>>) {
-        for (item in ygsnList) {
-            item.acceptEGESet = mapEGE.get(item.ygsnId)!!
+        for (item in informationYGSNMap.values) {
+            item.ygsn.acceptEGESet = mapEGE[item.ygsn.ygsnId]!!
         }
+    }
+
+    fun analyzeSituation(currentStudentId: Int): Boolean {
+        return true
+    }
+
+    private fun fillInformationYGSNMap(currentYGSNList: MutableList<UniversityYGSNMIREAData>): MutableMap<Int, InformationYGSN> {
+        val informationYGSNMap: MutableMap<Int, InformationYGSN> = mutableMapOf()
+
+        for (item in currentYGSNList) {
+            informationYGSNMap[item.ygsnId] = InformationYGSN(item)
+        }
+
+        return informationYGSNMap
     }
 }
