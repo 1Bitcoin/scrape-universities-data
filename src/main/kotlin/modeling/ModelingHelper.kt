@@ -8,6 +8,7 @@ import ru.batch.executor.MyQueryExecutor
 class ModelingHelper(limitStudent: Boolean) {
 
     // Ключ - регион нахождения ВУЗа, значение - массив с информацией о вузах в данном регионе
+    // Возможно лучше переделать, чтобы мапа хранила ид универа, а студент хранит список ChoiceStudent
     lateinit var informationUniversityMap2020: MutableMap<String, MutableList<InformationUniversity>>
     lateinit var informationUniversityMap2019: MutableMap<String, MutableList<InformationUniversity>>
 

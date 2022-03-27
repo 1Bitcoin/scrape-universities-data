@@ -31,7 +31,10 @@ fun main() {
 //        println()
 //    }
 
-    val modeller = Modeller(limitStudent = true)
+    val generator = Generator()
+    generator.generateStudent()
+
+    val modeller = Modeller(limitStudent = false)
 
     modeller.modeling()
 

@@ -26,6 +26,9 @@ class Generator {
         // Заполняем мапу вида: ид угсн-set ид егэ
         fillMapEGE()
 
+        // Рубильник - количество регионов на котором генерим студентов
+        var countRegion = 2
+
         // Обходим каждый регион распределения
         for (distrib in distribList) {
             println("Обработка региона: ${distrib.region}")
@@ -115,7 +118,12 @@ class Generator {
             println("Сохранение интересующих УГСН в БД. Количество записей ${ygsnList.size}")
             executor.batchInsertYGSN(ygsnList)
 
-            return
+            countRegion--
+            if (countRegion == 0) {
+
+                // Заглушка, чтобы сделать распределение только по одному региону
+                return
+            }
         }
     }
 
