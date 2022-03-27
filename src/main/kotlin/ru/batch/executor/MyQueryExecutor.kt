@@ -117,7 +117,7 @@ class MyQueryExecutor {
             prepareStatement.executeQuery()
 
         } else {
-            println("Получение полной информации из БД информации о студентах, интересующих их УСГН и сданных ЕГЭ")
+            println("Получение полной информации из БД информации о студентах, интересующих их УГСН и сданных ЕГЭ")
             connection.prepareStatement("select * from student").executeQuery()
         }
 
@@ -143,7 +143,6 @@ class MyQueryExecutor {
                 val egeList = selectStudentEGE(studentId)
 
                 list.add(InformationStudent(studentData, ygsnList, egeList))
-                println("Получена полная информация о студенте из БД!")
             }
         }
         val end = System.currentTimeMillis()
