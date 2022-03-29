@@ -7,10 +7,9 @@ import ru.batch.executor.MyQueryExecutor
 
 class ModelingHelper(limitStudent: Boolean) {
 
-    // Ключ - регион нахождения ВУЗа, значение - массив с информацией о вузах в данном регионе
-    // Возможно лучше переделать, чтобы мапа хранила ид универа, а студент хранит список ChoiceStudent
-    lateinit var informationUniversityMap2020: MutableMap<String, MutableList<InformationUniversity>>
-    lateinit var informationUniversityMap2019: MutableMap<String, MutableList<InformationUniversity>>
+    // Ключ - ид ВУЗа, значение - инфа о ВУЗе
+    lateinit var informationUniversityMap2020: LinkedHashMap<Int, InformationUniversity>
+    lateinit var informationUniversityMap2019: LinkedHashMap<Int, InformationUniversity>
 
     // Список с полной информацией о студентах
     lateinit var informationStudent: MutableList<InformationStudent>
@@ -27,7 +26,6 @@ class ModelingHelper(limitStudent: Boolean) {
 
     fun enrichUniversityDataSet() {
         informationUniversityMap2020 = executor.selectInformationUniversities(2020)
-        informationUniversityMap2019 = executor.selectInformationUniversities(2019)
 
         sortInformationUniversity()
         prepareInformationUniversity()
@@ -36,13 +34,10 @@ class ModelingHelper(limitStudent: Boolean) {
     private fun sortInformationUniversity() {
         println("Сортировка вузов по среднему баллу всех студентов")
 
-        for (map in informationUniversityMap2020) {
-            map.value.sortByDescending  { it.universityData.averageAllStudentsEGE }
-        }
-
-        for (map in informationUniversityMap2019) {
-            map.value.sortByDescending  { it.universityData.averageAllStudentsEGE }
-        }
+        informationUniversityMap2020 = informationUniversityMap2020
+            .toList()
+            .sortedByDescending { (key, value) -> value.universityData.averageAllStudentsEGE }
+            .toMap() as LinkedHashMap<Int, InformationUniversity>
     }
 
     fun enrichStudentDataSet(limit: Boolean) {
@@ -51,14 +46,9 @@ class ModelingHelper(limitStudent: Boolean) {
 
     private fun prepareInformationUniversity() {
         println("Вычисление списка ЕГЭ для каждого УГСН")
-        for (region in informationUniversityMap2020) {
-            for (university in region.value)
-                university.calculateAcceptEGESet(mapEGE)
-        }
 
-        for (region in informationUniversityMap2019) {
-            for (university in region.value)
-                university.calculateAcceptEGESet(mapEGE)
+        for (informationUniversity in informationUniversityMap2020.values) {
+            informationUniversity.calculateAcceptEGESet(mapEGE)
         }
     }
 

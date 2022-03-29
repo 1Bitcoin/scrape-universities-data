@@ -17,17 +17,17 @@ class InformationStudent(currentStudentData: StudentData, currentYGSNList: Mutab
     private var countUniversities = 0
 
     // Список с информацией куда и какое заявление подал студент
-    private var choice: MutableList<Pair<Int, InformationUniversity>> = mutableListOf()
+    private var choice: MutableList<ChoiceStudent> = mutableListOf()
 
 
-    fun addRequest(university: InformationUniversity, ygsnId: Int) {
+    fun addRequest(choseStudent: ChoiceStudent) {
         var count = 0
 
-        choice.add(ygsnId to university)
+        choice.add(choseStudent)
 
         // Смотрим были ли уже заявления в данный универ
         for (item in choice) {
-            if (item.second.universityData.universityId == university.universityData.universityId) {
+            if (item.universityId == choseStudent.universityId) {
                 count++
             }
         }
@@ -37,14 +37,14 @@ class InformationStudent(currentStudentData: StudentData, currentYGSNList: Mutab
         }
     }
 
-    fun revokeRequest(university: InformationUniversity, ygsnId: Int) {
+    fun revokeRequest(choseStudent: ChoiceStudent) {
         var count = 0
 
-        choice.remove(ygsnId to university)
+        choice.remove(choseStudent)
 
         // Смотрим были ли уже заявления в данный универ
         for (item in choice) {
-            if (item.second.universityData.universityId == university.universityData.universityId) {
+            if (item.universityId == choseStudent.universityId) {
                 count++
             }
         }
@@ -54,8 +54,10 @@ class InformationStudent(currentStudentData: StudentData, currentYGSNList: Mutab
         }
     }
 
-    fun getInformationUniversitiesPair(): MutableList<Pair<Int, InformationUniversity>> {
-        return choice
+    fun getChoicesStudent(): MutableList<ChoiceStudent> {
+
+        // Возвращаем копию массива - ее мы используем для итерации, а удалять элементы будем из исходного массива
+        return mutableListOf<ChoiceStudent>().apply { addAll(choice) }
     }
 
     fun getCountUniversities(): Int {

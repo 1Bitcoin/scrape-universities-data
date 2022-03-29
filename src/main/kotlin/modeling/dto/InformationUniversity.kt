@@ -7,7 +7,7 @@ class InformationUniversity(currentUniversityData: UniversityData, currentYGSNLi
     // Информация об универе
     val universityData = currentUniversityData
 
-    // Информация о всех УГСН универа и их конкурсные списки
+    // Информация о всех УГСН универа и их конкурсные списки, ключ - УГСН
     private val informationYGSNMap: MutableMap<Int, InformationYGSN> = fillInformationYGSNMap(currentYGSNList)
 
     fun submitRequest(currentStudentId: Int, currentYGSNId: Int, currentScore: Double, currentState: State, currentPutDate: String) {
@@ -56,7 +56,7 @@ class InformationUniversity(currentUniversityData: UniversityData, currentYGSNLi
 
     fun calculateAcceptEGESet(mapEGE: MutableMap<Int, MutableSet<Int>>) {
         for (item in informationYGSNMap.values) {
-            item.ygsn.acceptEGESet = mapEGE[item.ygsn.ygsnId]!!
+            item.ygsnData.acceptEGESet = mapEGE[item.ygsnData.ygsnId]!!
         }
     }
 

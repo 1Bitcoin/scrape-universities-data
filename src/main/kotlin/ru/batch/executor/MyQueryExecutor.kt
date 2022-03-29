@@ -19,10 +19,10 @@ class MyQueryExecutor {
         "qwerty"
     )
 
-    fun selectInformationUniversities(year: Int): MutableMap<String, MutableList<InformationUniversity>> {
+    fun selectInformationUniversities(year: Int): LinkedHashMap<Int, InformationUniversity> {
         println("Получение из БД информации о универах и их УГСН")
 
-        val informationUniversityMap: MutableMap<String, MutableList<InformationUniversity>> = mutableMapOf()
+        val informationUniversityMap: LinkedHashMap<Int, InformationUniversity> = linkedMapOf()
 
         val prepareStatement = connection.prepareStatement("select * from university where yearofdata = ?")
         prepareStatement.setInt(1, year)
@@ -60,15 +60,10 @@ class MyQueryExecutor {
                 // Получаем все УГСН текущего вуза
                 val ygsnList = selectUniversityYGSN(universityId, year)
 
-                // Если в мапе есть ключ-регион, то кладем в соответствующий ему массив информацию об универе
-                // иначе - добавляем ключ и начальное значение
 
-                val key = universityData.region
-                if (informationUniversityMap.containsKey(key)) {
-                    informationUniversityMap[key]!!.add(InformationUniversity(universityData, ygsnList))
-                } else {
-                    informationUniversityMap[key] = mutableListOf(InformationUniversity(universityData, ygsnList))
-                }
+                val key = universityData.universityId
+
+                informationUniversityMap[key] = InformationUniversity(universityData, ygsnList)
             }
         }
         val end = System.currentTimeMillis()

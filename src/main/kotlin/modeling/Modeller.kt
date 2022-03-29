@@ -1,5 +1,6 @@
 package modeling
 
+import modeling.dto.ChoiceStudent
 import modeling.dto.EGEResult
 import modeling.dto.InformationUniversity
 import modeling.dto.State
@@ -9,8 +10,6 @@ class Modeller(limitStudent: Boolean) {
 
     val students = helper.informationStudent
     val universities = helper.informationUniversityMap2020
-    val allUniversitiesList = getAllUniversitiesFromMap()
-
 
     fun modeling() {
         firstStep()
@@ -31,24 +30,22 @@ class Modeller(limitStudent: Boolean) {
             val studentEGE = student.egeList
             val isChangeRegion = student.studentData.change
 
-            // Готов ли студент сменить регион
-            // Но в таком случае универ должен иметь общагу
-            val currentListUniversities: MutableList<InformationUniversity> = if (isChangeRegion) {
-                allUniversitiesList
-            } else {
-                // Получить список ВУЗов конкретного региона
-                universities[studentRegion]!!
-            }
-
-            for (university in currentListUniversities) {
+            for (university in universities.values) {
 
                 // Доки можно класть максимум в 5 универов!
                 if (student.getCountUniversities() < 6) {
                     val informationYGSNCollection = university.getInformationYGSNMap().values
 
+                    val universityId = university.universityData.universityId
+
+                    // Если уник в другом регионе, а студент не может переезжать
+                    if (isChangeRegion == false && university.getRegion() != studentRegion) {
+                        continue
+                    }
+
                     // Для тех, кто может переехать, нужна общага в другом регионе
                     // В родном регионе она не обязательна
-                    if (isChangeRegion && university.getRegion() != studentRegion) {
+                    if (isChangeRegion == true && university.getRegion() != studentRegion) {
 
                         // Общага нужна, но ее нет пропускаем такой универ
                         if (university.universityData.hostel == false) {
@@ -61,22 +58,22 @@ class Modeller(limitStudent: Boolean) {
                     for (informationYGSN in informationYGSNCollection) {
 
                         // Если в ВУЗе есть интересующий нас УГСН
-                        if (informationYGSN.ygsn.ygsnId in studentYGSN) {
+                        if (informationYGSN.ygsnData.ygsnId in studentYGSN) {
 
                             // Нужно посчитать средний балл ЕГЭ студента для данного УГСН
                             // результаты необходимых ЕГЭ / кол-во ЕГЭ
-                            val averageScoreStudent = calculateAverageScoreStudent(informationYGSN.ygsn.acceptEGESet, studentEGE)
+                            val averageScoreStudent = calculateAverageScoreStudent(informationYGSN.ygsnData.acceptEGESet, studentEGE)
 
                             // Проверяем что средний балл студента не ниже среднего балла за прошлый год
                             // !!! Вот тут более умная система нужна, которая будет анализировать рост/падение за прошлые года !!!
-                            if (averageScoreStudent - informationYGSN.ygsn.averageScoreBudgetEGE >= 0) {
-                                university.submitRequest(studentId, informationYGSN.ygsn.ygsnId, averageScoreStudent,
+                            if (averageScoreStudent - informationYGSN.ygsnData.averageScoreBudgetEGE >= 0) {
+                                university.submitRequest(studentId, informationYGSN.ygsnData.ygsnId, averageScoreStudent,
                                     State.COPY, currentDate)
-                                student.addRequest(university, informationYGSN.ygsn.ygsnId)
+                                student.addRequest(ChoiceStudent(universityId, informationYGSN.ygsnData.ygsnId, State.COPY))
 
                                 println("Абитуриент $studentId подал копию заявления в университет " +
-                                        "${university.universityData.universityId} на УГСН ${informationYGSN.ygsn.ygsnId} " +
-                                        "| средний балл по УГСН: ${informationYGSN.ygsn.averageScoreBudgetEGE} " +
+                                        "${university.universityData.universityId} на УГСН ${informationYGSN.ygsnData.ygsnId} " +
+                                        "| средний балл по УГСН: ${informationYGSN.ygsnData.averageScoreBudgetEGE} " +
                                         "| средний балл студента: $averageScoreStudent")
                             }
                         }
@@ -95,7 +92,6 @@ class Modeller(limitStudent: Boolean) {
     private fun secondStep(countDays: Int = 30) {
         println("\n||| Начало второго этапа моделирования |||\n")
         val students = helper.informationStudent
-        val universities = helper.informationUniversityMap2020
 
         // Моделируем приемную кампанию длительностью countDays(по умолчанию 30)
         for (i in 1..countDays) {
@@ -106,12 +102,14 @@ class Modeller(limitStudent: Boolean) {
                 val isChangeRegion = student.studentData.change
                 val studentRegion = student.studentData.region
 
-                // Смотрим каждую ссылку на объект InformationUniversity в который студент подал заявление
-                for (informationUniversityPair in student.getInformationUniversitiesPair()) {
-                    val ygsnId = informationUniversityPair.first
-                    val numbersBudget = informationUniversityPair.second.getInformationYGSNMap()[ygsnId]!!.ygsn.numbersBudgetStudents
-                    val universityId = informationUniversityPair.second.universityData.universityId
-                    val competitiveList = informationUniversityPair.second.getInformationYGSNMap()[ygsnId]!!.competitiveList
+                // Смотрим в какой универ и на какую специальность подал студент
+                for (choseStudent in student.getChoicesStudent()) {
+                    val ygsnId = choseStudent.ygsnId
+                    val universityId = choseStudent.universityId
+
+                    val informationYGSN = universities[universityId]!!.getInformationYGSNMap()[ygsnId]!!
+                    val numbersBudget = informationYGSN.ygsnData.numbersBudgetStudents
+                    val competitiveList = informationYGSN.competitiveList
 
                     // Смотрим на каком месте в рейтинге
                     val placeIndexRating = competitiveList.indexOf(competitiveList.find { it.studentId == studentId })
@@ -124,8 +122,8 @@ class Modeller(limitStudent: Boolean) {
 
                         // Если лимит на кол-во вузов у студента превышен, то забираем доки по данному УГСН
                         if (student.getCountUniversities() == 5) {
-                            informationUniversityPair.second.revokeRequest(studentId, ygsnId)
-                            student.revokeRequest(informationUniversityPair.second, ygsnId)
+                            universities[universityId]!!.revokeRequest(studentId, ygsnId)
+                            student.revokeRequest(choseStudent)
 
                             println("Абитуриент $studentId вышел за пределы бюджетных мест в университете " +
                                     "$universityId на УГСН $ygsnId. Заявление необходимо переложить в другой ВУЗ.")
@@ -160,17 +158,5 @@ class Modeller(limitStudent: Boolean) {
         }
 
         return totalScoreStudent / countEGE
-    }
-
-    private fun getAllUniversitiesFromMap(): MutableList<InformationUniversity> {
-        val resultList: MutableList<InformationUniversity> = mutableListOf()
-
-        // перекладываем все универы в один список и сортируем их
-        for (item in universities) {
-            resultList.addAll(item.value)
-        }
-
-        resultList.sortByDescending { it.universityData.averageAllStudentsEGE }
-        return resultList
     }
 }
