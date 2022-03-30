@@ -27,7 +27,7 @@ class Generator {
         fillMapEGE()
 
         // Рубильник - количество регионов на котором генерим студентов
-        var countRegion = 2
+        var countRegion = 500
 
         // Обходим каждый регион распределения
         for (distrib in distribList) {

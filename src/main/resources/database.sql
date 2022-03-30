@@ -258,6 +258,11 @@ CREATE TABLE IF NOT EXISTS ygsn_ege(
     FOREIGN KEY (ege_id) REFERENCES ege (Id)
 );
 
+create index student_id_idx on student using btree(id);
+create index student_id_ege_idx on student_ege using btree(student_id);
+create index student_id_ygsn_idx on student_ygsn using btree(student_id);
+
+
 
 
 

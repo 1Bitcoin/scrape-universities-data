@@ -31,12 +31,12 @@ fun main() {
 //        println()
 //    }
 
-    //val generator = Generator()
-    //generator.generateStudent()
+    val generator = Generator()
+    generator.generateStudent()
 
-    val modeller = Modeller(limitStudent = true)
-
-    modeller.modeling()
+//    val modeller = Modeller(limitStudent = false)
+//
+//    modeller.modeling()
 
 //    helper.enrichUniversityDataSet()
 //
