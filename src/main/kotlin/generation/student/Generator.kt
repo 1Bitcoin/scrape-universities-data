@@ -14,7 +14,6 @@ class Generator {
 
     private val executor: MyQueryExecutor = MyQueryExecutor()
 
-
     val seniorRange = 70..80
     val geniusRange = 80..99
 

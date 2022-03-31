@@ -21,10 +21,10 @@ class ModelingHelper(limitStudent: Boolean) {
 
     init {
         enrichUniversityDataSet()
-        enrichStudentDataSet(limitStudent)
+        enrichStudentDataSet()
     }
 
-    fun enrichUniversityDataSet() {
+    private fun enrichUniversityDataSet() {
         informationUniversityMap2020 = executor.selectInformationUniversities(2020)
 
         sortInformationUniversity()
@@ -40,8 +40,8 @@ class ModelingHelper(limitStudent: Boolean) {
             .toMap() as LinkedHashMap<Int, InformationUniversity>
     }
 
-    fun enrichStudentDataSet(limit: Boolean) {
-        informationStudent = executor.selectInformationStudent(limit)
+    private fun enrichStudentDataSet() {
+        informationStudent = executor.selectFullInformationStudent()
     }
 
     private fun prepareInformationUniversity() {

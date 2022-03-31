@@ -11,6 +11,7 @@ import modeling.dto.InformationUniversity
 import java.sql.DriverManager
 import java.sql.ResultSet
 import java.sql.Statement
+import java.util.*
 
 class MyQueryExecutor {
     private val connection = DriverManager.getConnection(
@@ -18,6 +19,65 @@ class MyQueryExecutor {
         "postgres",
         "qwerty"
     )
+
+    fun selectFullInformationStudent(): MutableList<InformationStudent> {
+        val prepareStatement = connection.prepareStatement(
+                "select student.id," +
+                "        student.region," +
+                "        student.change_region," +
+                "        json_build_array(array_agg(DISTINCT (ege.ege_id, ege.score_ege))) as json_ege," +
+                "        array_agg(DISTINCT ygsn.ygsn_id) as array_ygsn" +
+                " from student" +
+                "        join student_ege ege on student.id = ege.student_id" +
+                "        join student_ygsn ygsn on student.id = ygsn.student_id" +
+                "        group by student.id")
+
+        val resultSet = prepareStatement.executeQuery()
+
+        val list: MutableList<InformationStudent> = mutableListOf()
+
+        resultSet.use { it ->
+            while (it.next()) {
+                val studentData = StudentData().apply {
+                    studentId = it.getInt("id")
+                    region = it.getString("region")
+                    change = it.getBoolean("change_region")
+                }
+
+                var jsonEGE = it.getString("json_ege")
+
+                jsonEGE = jsonEGE.drop(2).dropLast(2).split("},{").toString()
+                    .replace("{", "")
+                    .replace("}", "")
+                    .replace("\"f1\":", "")
+                    .replace("\"f2\":", "")
+                    .replace(",", " ")
+                    .replace("  ", " ")
+                    .replace("[", "")
+                    .replace("]", "")
+
+                val json = jsonEGE.split(" ")
+
+                val egeList = mutableListOf<EGEResult>()
+
+                for (index in json.indices step 2) {
+                    val egeId = json[index].toInt()
+                    val score = json[index + 1].toInt()
+
+                    egeList.add(EGEResult(egeId, score))
+                }
+
+                val ygsnArray = it.getArray("array_ygsn").array as Array<Any?>
+
+                val ygsnList = mutableListOf<Int>()
+                ygsnArray.forEach { ygsnList.add(it.toString().toInt()) }
+
+                list.add(InformationStudent(studentData, ygsnList, egeList))
+            }
+        }
+
+        return list
+    }
 
     fun selectInformationUniversities(year: Int): LinkedHashMap<Int, InformationUniversity> {
         println("Получение из БД информации о универах и их УГСН")

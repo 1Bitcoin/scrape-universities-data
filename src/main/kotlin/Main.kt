@@ -4,6 +4,7 @@ import generation.student.Generator
 import modeling.ModelingHelper
 import modeling.Modeller
 import org.jetbrains.exposed.sql.Database
+import ru.batch.executor.MyQueryExecutor
 
 
 fun main() {
@@ -31,12 +32,16 @@ fun main() {
 //        println()
 //    }
 
-    val generator = Generator()
-    generator.generateStudent()
+//    val generator = Generator()
+//    generator.generateStudent()
 
-//    val modeller = Modeller(limitStudent = false)
-//
-//    modeller.modeling()
+//    val executor = MyQueryExecutor()
+//    executor.selectFullInformationStudent()
+
+
+    val modeller = Modeller(limitStudent = false)
+
+    modeller.modeling()
 
 //    helper.enrichUniversityDataSet()
 //
