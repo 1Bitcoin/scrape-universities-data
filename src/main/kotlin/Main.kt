@@ -9,7 +9,7 @@ import ru.batch.executor.MyQueryExecutor
 
 fun main() {
     Database.connect(
-        "jdbc:postgresql://localhost:5432/postgres?loggerLevel=TRACE&loggerFile=pgjdbc.log&reWriteBatchedInserts=true",
+        "jdbc:postgresql://localhost:5432/postgres?loggerLevel=TRACE&&reWriteBatchedInserts=true",
         driver = "org.postgresql.Driver", user = "postgres", password = "qwerty"
     )
 
