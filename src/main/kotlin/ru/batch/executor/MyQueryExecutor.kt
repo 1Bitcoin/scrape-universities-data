@@ -20,7 +20,7 @@ class MyQueryExecutor {
         "qwerty"
     )
 
-    fun selectFullInformationStudent(): MutableList<InformationStudent> {
+    fun selectFullInformationStudent(limit: Int): MutableList<InformationStudent> {
         val prepareStatement = connection.prepareStatement(
                 "select student.id," +
                 "        student.region," +
@@ -30,7 +30,9 @@ class MyQueryExecutor {
                 " from student" +
                 "        join student_ege ege on student.id = ege.student_id" +
                 "        join student_ygsn ygsn on student.id = ygsn.student_id" +
-                "        group by student.id")
+                "        group by student.id limit ?")
+
+        prepareStatement.setInt(1, limit)
 
         val resultSet = prepareStatement.executeQuery()
 

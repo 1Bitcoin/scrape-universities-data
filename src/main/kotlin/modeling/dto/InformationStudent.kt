@@ -1,6 +1,8 @@
 package modeling.dto
 
 import dto.student.StudentData
+import java.util.Collections.addAll
+import java.util.concurrent.ConcurrentHashMap
 
 class InformationStudent(currentStudentData: StudentData, currentYGSNList: MutableList<Int>,
                          currentEGEList: MutableList<EGEResult>) {
@@ -17,58 +19,58 @@ class InformationStudent(currentStudentData: StudentData, currentYGSNList: Mutab
     private var countUniversities = 0
 
     // Список с информацией куда и какое заявление подал студент
-    private var choice: MutableList<ChoiceStudent> = mutableListOf()
+    public var choice: MutableMap<Int, MutableList<ChoiceStudent>> = mutableMapOf()
 
 
-    fun addRequest(choseStudent: ChoiceStudent) {
-        var count = 0
+    fun addRequest(currentUniversityId: Int, choseStudent: ChoiceStudent) {
 
-        choice.add(choseStudent)
+        // Если такой ключ уже есть в мапе, то надо проверить кол-во элементов в value
+        // под этим ключом
+        if (choice.containsKey(currentUniversityId)) {
+            if (choice[currentUniversityId]!!.size == 0) {
+                increaseCountUniversities()
+            }
 
-        // Смотрим были ли уже заявления в данный универ
-        for (item in choice) {
-            if (item.universityId == choseStudent.universityId) {
-                count++
+        } else {
+            choice[currentUniversityId] = mutableListOf()
+
+            increaseCountUniversities()
+        }
+
+        choice[currentUniversityId]!!.add(choseStudent)
+    }
+
+    fun revokeRequest(
+        iterator: MutableIterator<ChoiceStudent>, currentUniversityId: Int, choseStudent: ChoiceStudent
+    ) {
+        while (iterator.hasNext()) {
+            val elem = iterator.next()
+
+            if (elem.ygsnId == choseStudent.ygsnId && elem.state == choseStudent.state) {
+                iterator.remove()
             }
         }
 
-        if (count == 1) {
-            increaseCountRequests()
+        if (choice[currentUniversityId]!!.size == 0) {
+            decreaseCountUniversities()
         }
     }
 
-    fun revokeRequest(choseStudent: ChoiceStudent) {
-        var count = 0
+    fun getChoicesStudent(): MutableMap<Int, MutableList<ChoiceStudent>> {
 
-        choice.remove(choseStudent)
-
-        // Смотрим были ли уже заявления в данный универ
-        for (item in choice) {
-            if (item.universityId == choseStudent.universityId) {
-                count++
-            }
-        }
-
-        if (count == 0) {
-            decreaseCountRequests()
-        }
-    }
-
-    fun getChoicesStudent(): MutableList<ChoiceStudent> {
-
-        // Возвращаем копию массива - ее мы используем для итерации, а удалять элементы будем из исходного массива
-        return mutableListOf<ChoiceStudent>().apply { addAll(choice) }
+        // Возвращаем копию мапы - ее мы используем для итерации, а удалять элементы будем из исходной мапы
+        return choice.toMutableMap()
     }
 
     fun getCountUniversities(): Int {
         return countUniversities
     }
 
-    private fun increaseCountRequests() {
+    private fun increaseCountUniversities() {
         countUniversities++
     }
 
-    private fun decreaseCountRequests() {
+    private fun decreaseCountUniversities() {
         countUniversities--
     }
 }

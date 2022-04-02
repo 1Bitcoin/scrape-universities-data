@@ -5,7 +5,7 @@ import modeling.dto.InformationUniversity
 import org.jetbrains.database.student.selectEGE
 import ru.batch.executor.MyQueryExecutor
 
-class ModelingHelper(limitStudent: Boolean) {
+class ModelingHelper(limitStudent: Int) {
 
     // Ключ - ид ВУЗа, значение - инфа о ВУЗе
     lateinit var informationUniversityMap2020: LinkedHashMap<Int, InformationUniversity>
@@ -21,7 +21,7 @@ class ModelingHelper(limitStudent: Boolean) {
 
     init {
         enrichUniversityDataSet()
-        enrichStudentDataSet()
+        enrichStudentDataSet(limitStudent)
     }
 
     private fun enrichUniversityDataSet() {
@@ -40,8 +40,8 @@ class ModelingHelper(limitStudent: Boolean) {
             .toMap() as LinkedHashMap<Int, InformationUniversity>
     }
 
-    private fun enrichStudentDataSet() {
-        informationStudent = executor.selectFullInformationStudent()
+    private fun enrichStudentDataSet(limitStudent: Int) {
+        informationStudent = executor.selectFullInformationStudent(limitStudent)
     }
 
     private fun prepareInformationUniversity() {

@@ -39,7 +39,7 @@ fun main() {
 //    executor.selectFullInformationStudent()
 
 
-    val modeller = Modeller(limitStudent = false)
+    val modeller = Modeller()
 
     modeller.modeling()
 
