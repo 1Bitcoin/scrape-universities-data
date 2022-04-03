@@ -261,96 +261,103 @@ class Modeller(limitStudent: Int = 1000000) {
         // Число универов, в которые можно подавать заявления
         val countAvailableUniversities = 5 - student.getCountUniversities()
 
-        // Идем по кол-ву свободных универов
-        for (i in 1..countAvailableUniversities) {
+        // Если еще не нашли новые места для всех УГСН
+        if (ygsnList.isNotEmpty()) {
+            // Идем по кол-ву свободных универов
+            for (i in 1..countAvailableUniversities) {
 
-            // На каждой итерации запоминаем универ и УГСНы, на которые оптимальнее всего положить доки
-            val holder = HolderResult()
+                // На каждой итерации запоминаем универ и УГСНы, на которые оптимальнее всего положить доки
+                val holder = HolderResult()
 
-            for (university in universities.values) {
-                val universityId = university.universityData.universityId
+                for (university in universities.values) {
+                    val universityId = university.universityData.universityId
 
-                // Для каждого универа сравниваем такой объект с результирующим
-                // Если в этом объекте элементов больше, чем в результирующем => больше УГСН => это наиболее выгодный вариант
-                val currentHolder = HolderResult()
+                    // Для каждого универа сравниваем такой объект с результирующим
+                    // Если в этом объекте элементов больше, чем в результирующем => больше УГСН => это наиболее выгодный вариант
+                    val currentHolder = HolderResult()
 
-                // Если уник в другом регионе, а студент не может переезжать
-                if (isChangeRegion == false && university.getRegion() != studentRegion) {
-                    continue
-                }
-
-                // Для тех, кто может переехать, нужна общага в другом регионе
-                // В родном регионе она не обязательна
-                if (isChangeRegion == true && university.getRegion() != studentRegion) {
-
-                    // Общага нужна, но ее нет пропускаем такой универ
-                    if (university.universityData.hostel == false) {
+                    // Если уник в другом регионе, а студент не может переезжать
+                    if (isChangeRegion == false && university.getRegion() != studentRegion) {
                         continue
                     }
-                }
 
-                val informationYGSNCollection = university.getInformationYGSNMap().values
+                    // Для тех, кто может переехать, нужна общага в другом регионе
+                    // В родном регионе она не обязательна
+                    if (isChangeRegion == true && university.getRegion() != studentRegion) {
 
-                // Проверяем есть ли интересующий УГСН в ВУЗе
-                for (informationYGSN in informationYGSNCollection) {
-
-                    // Если в ВУЗе есть интересующий нас УГСН
-                    val currentYGSN = informationYGSN.ygsnData.ygsnId
-                    if (currentYGSN in ygsnList) {
-
-                        val numbersBudget = informationYGSN.ygsnData.numbersBudgetStudents
-                        val competitiveList = informationYGSN.competitiveList
-
-                        // Нужно посчитать средний балл ЕГЭ студента для данного УГСН
-                        // результаты необходимых ЕГЭ / кол-во ЕГЭ
-                        val averageScoreStudent = calculateAverageScoreStudent(informationYGSN.ygsnData.acceptEGESet, studentEGE)
-
-                        // Смотрим на каком месте в рейтинге были бы, если подали доки
-                        val mockStatement = Statement(studentId, averageScoreStudent, State.COPY, "mock")
-                        val invertedIndex = competitiveList.binarySearch(mockStatement, comparator)
-
-                        val actualIndex = -(invertedIndex + 1)
-                        val lastIndex = competitiveList.lastIndex
-
-                        // Число заявок между этими индексами
-                        val countRequest = lastIndex - actualIndex + 1
-
-                        // Если попадаем в бюджетные места, то помечаем данный УГСН в данном универе как подходящий
-                        if (numbersBudget >= countRequest) {
-                            currentHolder.universityId = universityId
-                            currentHolder.ygsnList.add(currentYGSN)
-                            currentHolder.additionalInformation.add(HolderResult.AdditionalInformation(
-                                currentYGSN, averageScoreStudent, State.COPY, countRequest, numbersBudget))
+                        // Общага нужна, но ее нет пропускаем такой универ
+                        if (university.universityData.hostel == false) {
+                            continue
                         }
+                    }
+
+                    val informationYGSNCollection = university.getInformationYGSNMap().values
+
+                    // Проверяем есть ли интересующий УГСН в ВУЗе
+                    for (informationYGSN in informationYGSNCollection) {
+
+                        // Если в ВУЗе есть интересующий нас УГСН
+                        val currentYGSN = informationYGSN.ygsnData.ygsnId
+                        if (currentYGSN in ygsnList) {
+
+                            val numbersBudget = informationYGSN.ygsnData.numbersBudgetStudents
+                            val competitiveList = informationYGSN.competitiveList
+
+                            // Нужно посчитать средний балл ЕГЭ студента для данного УГСН
+                            // результаты необходимых ЕГЭ / кол-во ЕГЭ
+                            val averageScoreStudent = calculateAverageScoreStudent(informationYGSN.ygsnData.acceptEGESet, studentEGE)
+
+                            // Смотрим на каком месте в рейтинге были бы, если подали доки
+                            val mockStatement = Statement(studentId, averageScoreStudent, State.COPY, "mock")
+                            val actualIndex = competitiveList.binarySearch(mockStatement, comparator)
+
+                            val lastIndex = competitiveList.lastIndex
+
+                            // Число заявок между этими индексами
+                            val countRequest = lastIndex - actualIndex + 1
+
+                            // Если на данный УГСН нет поданых заявок
+                            if (competitiveList.find { it.studentId == studentId } == null) {
+
+                                // Если попадаем в бюджетные места, то помечаем данный УГСН в данном универе как подходящий
+
+                                if (numbersBudget >= countRequest) {
+                                    currentHolder.universityId = universityId
+                                    currentHolder.ygsnList.add(currentYGSN)
+                                    currentHolder.additionalInformation.add(HolderResult.AdditionalInformation(
+                                        currentYGSN, averageScoreStudent, State.COPY, countRequest, numbersBudget))
+                                }
+                            }
+                        }
+                    }
+
+                    // Сравниваем текущий холдер с результирующим
+                    if (currentHolder.ygsnList.size > holder.ygsnList.size) {
+                        holder.universityId = currentHolder.universityId
+                        holder.ygsnList = currentHolder.ygsnList
+                        holder.additionalInformation = currentHolder.additionalInformation
                     }
                 }
 
-                // Сравниваем текущий холдер с результирующим
-                if (currentHolder.ygsnList.size > holder.ygsnList.size) {
-                    holder.universityId = currentHolder.universityId
-                    holder.ygsnList = currentHolder.ygsnList
-                    holder.additionalInformation = currentHolder.additionalInformation
+                // Необходимо подать заявления на отобранные универы
+                for (item in holder.additionalInformation) {
+                    val universityId = holder.universityId
+                    val university = universities[universityId]
+
+                    university!!.submitRequest(studentId, item.ygsnId, item.score,
+                        item.state, currentDate)
+
+                    student.addRequest(universityId, ChoiceStudent(item.ygsnId, item.state), listIterator)
+
+                    println("Абитуриент $studentId ПЕРЕПОДАЛ копию заявления в университет " +
+                            "${university.universityData.universityId} на УГСН ${item.ygsnId} " +
+                            "| место в рейтинге ${item.studentPosition} |" +
+                            "бюджетных мест ${item.countBudget}.")
                 }
+
+                // Необходимо удалить из массива УГСН ид те ид, на которые подали заявление
+                ygsnList.removeAll(holder.ygsnList)
             }
-
-            // Необходимо подать заявления на отобранные универы
-            for (item in holder.additionalInformation) {
-                val universityId = holder.universityId
-                val university = universities[universityId]
-
-                university!!.submitRequest(studentId, item.ygsnId, item.score,
-                    item.state, currentDate)
-
-                student.addRequest(universityId, ChoiceStudent(item.ygsnId, item.state), listIterator)
-
-                println("Абитуриент $studentId ПЕРЕПОДАЛ копию заявления в университет " +
-                        "${university.universityData.universityId} на УГСН ${item.ygsnId} " +
-                        "| место в рейтинге ${item.studentPosition} |" +
-                        "бюджетных мест ${item.countBudget}.")
-            }
-
-            // Необходимо удалить из массива УГСН ид те ид, на которые подали заявление
-            ygsnList.removeAll(holder.ygsnList)
         }
 
         if (ygsnList.isNotEmpty()) {
