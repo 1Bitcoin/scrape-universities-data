@@ -3,6 +3,7 @@ package modeling.dto
 import dto.student.StudentData
 import java.util.Collections.addAll
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.CopyOnWriteArrayList
 
 class InformationStudent(currentStudentData: StudentData, currentYGSNList: MutableList<Int>,
                          currentEGEList: MutableList<EGEResult>) {
@@ -19,11 +20,9 @@ class InformationStudent(currentStudentData: StudentData, currentYGSNList: Mutab
     private var countUniversities = 0
 
     // Список с информацией куда и какое заявление подал студент
-    public var choice: MutableMap<Int, MutableList<ChoiceStudent>> = mutableMapOf()
+    public var choice: ConcurrentHashMap<Int, CopyOnWriteArrayList<ChoiceStudent>> = ConcurrentHashMap()
 
-
-    fun addRequest(currentUniversityId: Int, choseStudent: ChoiceStudent) {
-
+    fun addRequest(currentUniversityId: Int, choseStudent: ChoiceStudent, listIterator: MutableListIterator<ChoiceStudent>? = null) {
         // Если такой ключ уже есть в мапе, то надо проверить кол-во элементов в value
         // под этим ключом
         if (choice.containsKey(currentUniversityId)) {
@@ -32,7 +31,7 @@ class InformationStudent(currentStudentData: StudentData, currentYGSNList: Mutab
             }
 
         } else {
-            choice[currentUniversityId] = mutableListOf()
+            choice[currentUniversityId] = CopyOnWriteArrayList(mutableListOf())
 
             increaseCountUniversities()
         }
@@ -40,16 +39,8 @@ class InformationStudent(currentStudentData: StudentData, currentYGSNList: Mutab
         choice[currentUniversityId]!!.add(choseStudent)
     }
 
-    fun revokeRequest(
-        iterator: MutableIterator<ChoiceStudent>, currentUniversityId: Int, choseStudent: ChoiceStudent
-    ) {
-        while (iterator.hasNext()) {
-            val elem = iterator.next()
-
-            if (elem.ygsnId == choseStudent.ygsnId && elem.state == choseStudent.state) {
-                iterator.remove()
-            }
-        }
+    fun revokeRequest(iterator: MutableIterator<ChoiceStudent>, currentUniversityId: Int, choseStudent: ChoiceStudent) {
+        choice[currentUniversityId]!!.remove(choseStudent)
 
         if (choice[currentUniversityId]!!.size == 0) {
             decreaseCountUniversities()

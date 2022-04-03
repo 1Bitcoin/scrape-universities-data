@@ -18,7 +18,7 @@ class InformationUniversity(currentUniversityData: UniversityData, currentYGSNLi
         competitiveList.add(Statement(currentStudentId, currentScore, currentState, currentPutDate))
 
         // Неэффективно - чтобы списки были упорядочены по сумме баллов сортируем их
-        competitiveList.sortByDescending { it.score }
+        competitiveList.sortBy { it.score }
     }
 
     fun getInformationYGSNMap(): MutableMap<Int, InformationYGSN> {
@@ -48,6 +48,9 @@ class InformationUniversity(currentUniversityData: UniversityData, currentYGSNLi
 
         val studentForDelete = competitiveList.find { it.studentId == currentStudentId }
         competitiveList.remove(studentForDelete)
+
+        // Неэффективно - чтобы списки были упорядочены по сумме баллов сортируем их
+        competitiveList.sortBy { it.score }
     }
 
     fun getRegion(): String {

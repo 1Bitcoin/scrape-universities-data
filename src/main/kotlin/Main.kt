@@ -9,7 +9,7 @@ import ru.batch.executor.MyQueryExecutor
 
 fun main() {
     Database.connect(
-        "jdbc:postgresql://localhost:5432/postgres?loggerLevel=TRACE&&reWriteBatchedInserts=true",
+        "jdbc:postgresql://localhost:5432/postgres",
         driver = "org.postgresql.Driver", user = "postgres", password = "qwerty"
     )
 
@@ -39,7 +39,7 @@ fun main() {
 //    executor.selectFullInformationStudent()
 
 
-    val modeller = Modeller()
+    val modeller = Modeller(limitStudent = 300000)
 
     modeller.modeling()
 
