@@ -4,7 +4,8 @@ import modeling.dto.*
 import java.util.concurrent.CopyOnWriteArrayList
 
 
-class Modeller(limitStudent: Int = 1000000) {
+class Modeller(limitStudent: Int = 100000) {
+    val countStudents = limitStudent
     val helper = ModelingHelper(limitStudent)
 
     val students = helper.informationStudent
@@ -12,14 +13,22 @@ class Modeller(limitStudent: Int = 1000000) {
 
     val comparator = compareBy<Statement> { it.score }
 
+    var currentMinutes = 10
     var currentHour = 9
     var currentDay = 20
     var currentMouth = 6
     var currentYear = 21
 
     fun modeling() {
+        val start = System.currentTimeMillis()
+
         firstStep()
         secondStep()
+        thirdStep()
+
+        val end = System.currentTimeMillis()
+
+        println("Время моделирования при $countStudents студентах = " + (end - start) / 1000 + " секунд")
     }
 
     // Базовое распределение студентов по универам, студенты просматривают универы, начиная с самого престижного,
@@ -28,7 +37,7 @@ class Modeller(limitStudent: Int = 1000000) {
     private fun firstStep() {
         println("\n||| Начало первого этапа моделирования |||\n")
 
-        val currentDate = "$currentDay/$currentMouth/$currentYear $currentHour:00:00"
+        val currentDate = "$currentDay/$currentMouth/$currentYear $currentHour:$currentMinutes:00"
 
         for (student in students) {
             val studentId = student.studentData.studentId
@@ -85,9 +94,13 @@ class Modeller(limitStudent: Int = 1000000) {
                         }
                     }
                 } else {
-                    println("Абитуриент может подать заявление максимум в 5 универов!")
+                    println("Абитуриент $studentId может подать заявление максимум в 5 универов!")
                     break
                 }
+            }
+
+            if (student.getCountUniversities() == 0) {
+                println("Абитуриент $studentId не смог подать копию ни в один университет!")
             }
         }
 
@@ -96,7 +109,7 @@ class Modeller(limitStudent: Int = 1000000) {
 
     // Каждый абитуриент будет оценивать свою ситуацию, анализируя свое положение в конкурсном списке
     // и по кол-ву доступных бюджетных мест на данный УГСН. Если он не попадает в n доступных мест,
-    // то забирает копию своего заявления и кладет в универ пониже статусом.
+    // то забирает копию своего заявления и кладет в другой универ, где есть места на интересующем его УГСН.
     // Так продолжается до дня X - когда надо положить оригинал и произойдет зачисление
     private fun secondStep(countDays: Int = 30) {
         println("\n||| Начало второго этапа моделирования |||\n")
@@ -104,7 +117,7 @@ class Modeller(limitStudent: Int = 1000000) {
 
         // Моделируем приемную кампанию длительностью countDays(по умолчанию 30)
         for (i in 1..countDays) {
-            val currentDate = "$currentDay/$currentMouth/$currentYear $currentHour:00:00"
+            val currentDate = "$currentDay/$currentMouth/$currentYear $currentHour:$currentMinutes:00"
 
             // Смотрим каждый универ, в который подал заявления студент
             val studentIterator = students.listIterator()
@@ -116,7 +129,7 @@ class Modeller(limitStudent: Int = 1000000) {
                 val isChangeRegion = student.studentData.change
                 val studentRegion = student.studentData.region
 
-                // Смотрим каждый универ, в который подал заявления студент
+                // Смотрим каждую заявку студента
                 val mapIterator: MutableIterator<Map.Entry<Int, CopyOnWriteArrayList<ChoiceStudent>>> = student.choice.iterator()
 
                 while (mapIterator.hasNext()) {
@@ -136,7 +149,7 @@ class Modeller(limitStudent: Int = 1000000) {
                     // Список заявок, на которые студент не может попасть
                     val requestFailList = mutableListOf<ChoiceStudent>()
 
-                    // Смотрим каждую заявку в этом ВУЗе
+                    // Смотрим каждую заявку в конкретном вузе
                     val listIterator = choseStudentList.listIterator()
 
                     while (listIterator.hasNext()) {
@@ -166,7 +179,7 @@ class Modeller(limitStudent: Int = 1000000) {
                                 // тогда можно спокойно убирать это заявление
                                 if (countChoseStudent == 1) {
                                     universities[universityId]!!.revokeRequest(studentId, ygsnId)
-                                    student.revokeRequest(listIterator, universityId, choseStudent)
+                                    student.revokeRequest(universityId, choseStudent)
 
                                     println("Абитуриент $studentId вышел за пределы бюджетных мест в университете " +
                                             "$universityId на УГСН $ygsnId. Заявление перекладывается в другой ВУЗ.")
@@ -205,23 +218,24 @@ class Modeller(limitStudent: Int = 1000000) {
                     // Пример: студент подал на УГСН 1, УГСН 2, УГСН 3, на да из них он проходит -
                     // заявление не трогаем
 
-                    // Проверка, что нужно переложить заявление(я)
+                    // Проверка, что нужно переложить заявления
                     if (countFailRequest != 0) {
 
                         // Если число заявок, на которые студент не проходит больше числа заявок,
                         // на которые он проходит
                         if (countFailRequest / countChoseStudent > 0.5) {
 
-                            // Удаляем предыдущие заявления
+                            // Удаляем предыдущие заявления данного студента в данном универе
                             for (ygsnId in ygsnFailList) {
                                 universities[universityId]!!.revokeRequest(studentId, ygsnId)
                             }
 
+                            // Удаляем все заявление у студента для данного универа
                             val listDeleteIterator: MutableIterator<ChoiceStudent> = choseStudentList.iterator()
 
                             while (listDeleteIterator.hasNext()) {
                                 val choseStudent = listDeleteIterator.next()
-                                student.revokeRequest(listDeleteIterator, universityId, choseStudent)
+                                student.revokeRequest(universityId, choseStudent)
                             }
 
                             // Ищем подходящий универ, в который еще не подавали и нужный УГСН в нем
@@ -247,7 +261,7 @@ class Modeller(limitStudent: Int = 1000000) {
     }
 
     // Просматриваем уники заново и ищем подходящие
-    fun searchUniversities(
+    private fun searchUniversities(
         listIterator: MutableListIterator<ChoiceStudent>,
         student: InformationStudent,
         ygsnList: MutableList<Int>,
@@ -275,6 +289,7 @@ class Modeller(limitStudent: Int = 1000000) {
                     // Для каждого универа сравниваем такой объект с результирующим
                     // Если в этом объекте элементов больше, чем в результирующем => больше УГСН => это наиболее выгодный вариант
                     val currentHolder = HolderResult()
+                    currentHolder.universityId = universityId
 
                     // Если уник в другом регионе, а студент не может переезжать
                     if (isChangeRegion == false && university.getRegion() != studentRegion) {
@@ -321,7 +336,6 @@ class Modeller(limitStudent: Int = 1000000) {
 
                                 // Если попадаем в бюджетные места, то помечаем данный УГСН в данном универе как подходящий
                                 if (numbersBudget >= countRequest) {
-                                    currentHolder.universityId = universityId
                                     currentHolder.ygsnList.add(currentYGSN)
                                     currentHolder.additionalInformation.add(HolderResult.AdditionalInformation(
                                         currentYGSN, averageScoreStudent, State.COPY, countRequest, numbersBudget))
@@ -341,9 +355,9 @@ class Modeller(limitStudent: Int = 1000000) {
                 // Необходимо подать заявления на отобранные универы
                 for (item in holder.additionalInformation) {
                     val universityId = holder.universityId
-                    val university = universities[universityId]
+                    val university = universities[universityId]!!
 
-                    university!!.submitRequest(studentId, item.ygsnId, item.score,
+                    university.submitRequest(studentId, item.ygsnId, item.score,
                         item.state, currentDate)
 
                     student.addRequest(universityId, ChoiceStudent(item.ygsnId, item.state), listIterator)
@@ -361,6 +375,198 @@ class Modeller(limitStudent: Int = 1000000) {
 
         if (ygsnList.isNotEmpty()) {
             println("Абитуриент $studentId НЕ НАШЕЛ КУДА переподать копии на следующие УГСН: $ygsnList.")
+        }
+    }
+
+    // наступил день Х - необходимо положить оригинал заявлений
+    private fun thirdStep(countIterations: Int = 60) {
+        println("\n||| Начало третьего этапа моделирования |||\n")
+        val students = helper.informationStudent
+
+        // Моделируем приемную кампанию длительностью countDays(по умолчанию 30)
+        for (i in 1..countIterations) {
+            val currentDate = "$currentDay/$currentMouth/$currentYear $currentHour:$currentMinutes:00"
+
+            // Смотрим каждый универ, в который подал заявления студент
+            val studentIterator = students.listIterator()
+
+            // Обходим каждого студента и рассматриваем его ситуацию
+            while (studentIterator.hasNext()) {
+                val student = studentIterator.next()
+                val studentId = student.studentData.studentId
+
+                if (student.getCountUniversities() == 0) {
+                    println("Абитуриент $studentId не имеет копий заявлений ни в одном университете! (пропускается)")
+                    continue
+                }
+
+                // Для каждого студента ищем наиболее выгодный вариант для оригинала заявления
+                var resultChoice: ResultChoice? = null
+
+                // Смотрим каждую заявку студента
+                val mapIterator: MutableIterator<Map.Entry<Int, CopyOnWriteArrayList<ChoiceStudent>>> = student.choice.iterator()
+
+                while (mapIterator.hasNext()) {
+                    val entryChoseStudent = mapIterator.next()
+
+                    val universityId = entryChoseStudent.key
+                    val choseStudentList = entryChoseStudent.value
+
+                    // Смотрим каждую заявку в конкретном вузе
+                    val listIterator = choseStudentList.listIterator()
+
+                    while (listIterator.hasNext()) {
+                        val choseStudent = listIterator.next()
+
+                        val ygsnId = choseStudent.ygsnId
+
+                        val informationYGSN = universities[universityId]!!.getInformationYGSNMap()[ygsnId]!!
+                        val numbersBudget = informationYGSN.ygsnData.numbersBudgetStudents
+                        val competitiveList = informationYGSN.competitiveList
+
+                        // Смотрим на каком месте в рейтинге среди заявок с оригиналами
+                        val statement = competitiveList
+                            .filter { it.state == State.ORIGINAL || it.studentId == studentId }
+                            .find { it.studentId == studentId }!!
+
+                        val actualIndex = competitiveList
+                            .filter { it.state == State.ORIGINAL || it.studentId == studentId }
+                            .indexOf(statement)
+
+                        val lastIndex = competitiveList
+                            .filter { it.state == State.ORIGINAL || it.studentId == studentId }
+                            .lastIndex
+
+                        // Число заявок между этими индексами
+                        val countRequest = lastIndex - actualIndex + 1
+
+                        // Если проходим на данный УГСН
+                        if (numbersBudget >= countRequest) {
+
+                            // Если на данном УГСН в данном унике уже не лежит оригинал
+                            if (statement.state != State.ORIGINAL) {
+
+                                val currentScoreUniversity = universities[universityId]!!
+                                    .universityData
+                                    .averageAllStudentsEGE
+
+                                val currentScoreYGSN = universities[universityId]!!
+                                    .getInformationYGSNMap()[ygsnId]!!
+                                    .ygsnData
+                                    .averageScoreBudgetEGE
+
+                                // Надо сравнить престижность текущего выбора с предыдущим
+
+                                // Если это заявление - первое рассматриваемое
+                                if (resultChoice == null) {
+                                    resultChoice = ResultChoice(choseStudent, statement,
+                                        currentScoreUniversity, currentScoreYGSN, universityId)
+
+                                } else {
+                                    // Нужно сравнить прошлое заявление с текущим по престижности уников
+                                    // Или УГСН, если прошлое заявление в тот же унике
+
+                                    // Если прошлое заявление в том же унике
+                                    if (resultChoice.universityId == universityId) {
+
+                                        // Сравниваем престижности УГСН
+                                        if (currentScoreYGSN > resultChoice.scoreYGSN) {
+
+                                            // Текущий УГСН престижнее результирующего - меняем выбор
+                                            resultChoice.apply {
+                                                choiceStudent = choseStudent
+                                                currentStatement = statement
+                                                universityScore = currentScoreUniversity
+                                                scoreYGSN = currentScoreYGSN
+                                                this.universityId = universityId
+                                            }
+                                        }
+                                    } else {
+
+                                        // Сравниваем по престижности уников
+                                        if (currentScoreUniversity > resultChoice.universityScore) {
+                                            resultChoice.apply {
+                                                choiceStudent = choseStudent
+                                                currentStatement = statement
+                                                universityScore = currentScoreUniversity
+                                                scoreYGSN = currentScoreYGSN
+                                                this.universityId = universityId
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // Если студенту не нашел место под свой оригинал
+                if (resultChoice == null) {
+                    if (student.getCurrentOriginal() != null) {
+                        println("Абитуриент $studentId НЕ НАШЕЛ куда ЛУЧШЕ положить оригинал заявления(уже есть активный).")
+                    } else {
+                        println("Абитуриент $studentId ВООБЩЕ НЕ НАШЕЛ куда положить оригинал заявления(активных нет).")
+                    }
+                } else {
+                    val currentOriginalChoice = student.getCurrentOriginal()
+
+                    // Если оригинал уже есть в каком-то ВУЗе
+                    if (currentOriginalChoice != null) {
+                        val originalUniversity = universities[currentOriginalChoice.universityId]!!
+                        val originalStudentId = currentOriginalChoice.currentStatement.studentId
+                        val originalYGSNId = currentOriginalChoice.choiceStudent.ygsnId
+
+                        // Смотрим, выгоднее ли переложить оригинал в другой ВУЗ
+                        if (resultChoice.universityScore > currentOriginalChoice.universityScore) {
+
+                            // Если есть другой активный оригинал - убираем ее
+                            originalUniversity.changeState(originalStudentId, originalYGSNId, State.COPY, currentDate)
+                            student.changeState(originalUniversity.universityData.universityId, originalYGSNId, State.COPY)
+
+                            println("Абитуриент $studentId убрал ОРИГИНАЛ заявления из университета " +
+                                    "${originalUniversity.universityData.universityId} на УГСН " +
+                                    "${currentOriginalChoice.choiceStudent.ygsnId}")
+
+                            // И кладем новый оригинал
+                            val university = universities[resultChoice.universityId]
+                            val resultStudentId = resultChoice.currentStatement.studentId
+                            val resultYGSNId = resultChoice.choiceStudent.ygsnId
+
+                            university?.changeState(resultStudentId, resultYGSNId, State.ORIGINAL, currentDate)
+                            student.changeState(university!!.universityData.universityId, resultYGSNId, State.ORIGINAL)
+                            student.setCurrentOriginal(resultChoice)
+
+                            println("Абитуриент $studentId положил ОРИГИНАЛ заявления в более престижный университет " +
+                                    "${university.universityData.universityId} на УГСН $resultYGSNId.")
+
+                        } else {
+                            println("Абитуриент $studentId оставил ОРИГИНАЛ заявления в университете " +
+                                    "${originalUniversity.universityData.universityId} на УГСН " +
+                                    "${currentOriginalChoice.choiceStudent.ygsnId}")
+                        }
+                    } else {
+                        // Если оригинал еще не подавался ни в один ВУЗ - то подаем
+                        val university = universities[resultChoice.universityId]
+                        val resultStudentId = resultChoice.currentStatement.studentId
+                        val resultYGSNId = resultChoice.choiceStudent.ygsnId
+
+                        university?.changeState(resultStudentId, resultYGSNId, State.ORIGINAL, currentDate)
+                        student.changeState(university!!.universityData.universityId, resultYGSNId, State.ORIGINAL)
+                        student.setCurrentOriginal(resultChoice)
+
+                        println("Абитуриент $studentId первый раз положил ОРИГИНАЛ заявления в университет " +
+                                "${university.universityData.universityId} на УГСН $resultYGSNId.")
+                    }
+                }
+            }
+
+            currentMinutes++
+            if (currentMinutes == 61) {
+                currentMinutes = 10
+                currentHour++
+            }
+
+            println("Итерация завершена")
         }
     }
 

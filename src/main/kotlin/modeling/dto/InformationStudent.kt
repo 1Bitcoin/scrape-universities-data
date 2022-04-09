@@ -20,7 +20,25 @@ class InformationStudent(currentStudentData: StudentData, currentYGSNList: Mutab
     private var countUniversities = 0
 
     // Список с информацией куда и какое заявление подал студент
-    public var choice: ConcurrentHashMap<Int, CopyOnWriteArrayList<ChoiceStudent>> = ConcurrentHashMap()
+    var choice: ConcurrentHashMap<Int, CopyOnWriteArrayList<ChoiceStudent>> = ConcurrentHashMap()
+
+    // Результат, куда подаем оригинал
+    var resultChoice: ResultChoice? = null
+
+    // Информация о текущем оригинале заявления
+    var currentOriginalChoiceStudent: ResultChoice? = null
+
+    fun setResult(result: ResultChoice) {
+        resultChoice = result
+    }
+
+    fun setCurrentOriginal(result: ResultChoice) {
+        currentOriginalChoiceStudent = result
+    }
+
+    fun getCurrentOriginal(): ResultChoice? {
+        return currentOriginalChoiceStudent
+    }
 
     fun addRequest(currentUniversityId: Int, choseStudent: ChoiceStudent, listIterator: MutableListIterator<ChoiceStudent>? = null) {
         // Если такой ключ уже есть в мапе, то надо проверить кол-во элементов в value
@@ -39,12 +57,21 @@ class InformationStudent(currentStudentData: StudentData, currentYGSNList: Mutab
         choice[currentUniversityId]!!.add(choseStudent)
     }
 
-    fun revokeRequest(iterator: MutableIterator<ChoiceStudent>, currentUniversityId: Int, choseStudent: ChoiceStudent) {
+    fun revokeRequest(currentUniversityId: Int, choseStudent: ChoiceStudent) {
         choice[currentUniversityId]!!.remove(choseStudent)
 
         if (choice[currentUniversityId]!!.size == 0) {
             decreaseCountUniversities()
         }
+    }
+
+    fun changeState(currentUniversityId: Int, currentYGSNId: Int, newState: State) {
+        choice[currentUniversityId]!!.find { it.ygsnId == currentYGSNId }
+            .let {
+                if (it != null) {
+                    it.state = newState
+                }
+            }
     }
 
     fun getChoicesStudent(): MutableMap<Int, MutableList<ChoiceStudent>> {

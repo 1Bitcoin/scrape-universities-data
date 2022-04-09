@@ -68,8 +68,8 @@ class Generator {
                 val studentData = StudentData().apply {
                     region = currentRegion
 
-                    // Пока что никто не уезжает в другие регионы
-                    change = false
+                    // Случайно выбираем признак готовности к переезду
+                    change = Random.nextBoolean()
                 }
                 studentList.add(studentData)
             }
@@ -79,8 +79,8 @@ class Generator {
                 val studentData = StudentData().apply {
                     region = currentRegion
 
-                    // Пока что никто не уезжает в другие регионы
-                    change = false
+                    // Случайно выбираем признак готовности к переезду
+                    change = Random.nextBoolean()
                 }
                 studentList.add(studentData)
             }
