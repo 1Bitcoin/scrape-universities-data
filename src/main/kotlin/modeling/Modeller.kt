@@ -316,11 +316,10 @@ class Modeller(limitStudent: Int = 1000000) {
                             // Число заявок между этими индексами
                             val countRequest = lastIndex - actualIndex + 1
 
-                            // Если на данный УГСН нет поданых заявок
+                            // Если на данный УГСН нет поданной заявки этого студента
                             if (competitiveList.find { it.studentId == studentId } == null) {
 
                                 // Если попадаем в бюджетные места, то помечаем данный УГСН в данном универе как подходящий
-
                                 if (numbersBudget >= countRequest) {
                                     currentHolder.universityId = universityId
                                     currentHolder.ygsnList.add(currentYGSN)
