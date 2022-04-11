@@ -52,25 +52,45 @@ class Generator {
             val countGenius = (countVYP * DistribScore.GENIUS.procent).toInt()
 
             // Создаем студентов в каждом регионе по числу выпускников
+            var count = 1
+            var isChange: Boolean
             println("Создание студентов группы middle")
             for (i in 1..countMiddle) {
+                if (count == 5) {
+                    count = 1
+                    isChange = false
+                } else isChange = count != 4
+
                 val studentData = StudentData().apply {
                     region = currentRegion
 
-                    // Случайно выбираем признак готовности к переезду
-                    change = Random.nextBoolean()
+                    // 60% готовы к пеерезду
+                    change = isChange
                 }
+
+                count++
+
                 studentList.add(studentData)
             }
 
             println("Создание студентов группы senior")
+            count = 1
             for (j in 1..countSenior) {
+                if (count == 5) {
+                    count = 1
+                    isChange = false
+                } else
+                    isChange = true
+
                 val studentData = StudentData().apply {
                     region = currentRegion
 
-                    // Случайно выбираем признак готовности к переезду
-                    change = Random.nextBoolean()
+                    // 80% готовы к пеерезду
+                    change = isChange
                 }
+
+                count++
+
                 studentList.add(studentData)
             }
 
@@ -79,8 +99,8 @@ class Generator {
                 val studentData = StudentData().apply {
                     region = currentRegion
 
-                    // Случайно выбираем признак готовности к переезду
-                    change = Random.nextBoolean()
+                    // Каждый супер студент готов к пеерезду
+                    change = true
                 }
                 studentList.add(studentData)
             }

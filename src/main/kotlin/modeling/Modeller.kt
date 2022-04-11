@@ -1,12 +1,15 @@
 package modeling
 
 import modeling.dto.*
+import modeling.dto.result.UniversityTotalResult
 import java.util.concurrent.CopyOnWriteArrayList
 
 
 class Modeller(limitStudent: Int = 100000) {
     val countStudents = limitStudent
+
     val helper = ModelingHelper(limitStudent)
+    val analyzer = Analyzer()
 
     val students = helper.informationStudent
     val universities = helper.informationUniversityMap2020
@@ -29,6 +32,10 @@ class Modeller(limitStudent: Int = 100000) {
         val end = System.currentTimeMillis()
 
         println("Время моделирования при $countStudents студентах = " + (end - start) / 1000 + " секунд")
+
+        println("Анализ результатов проведенного моделирования")
+
+        analyzer.analyzeResults(universities)
     }
 
     // Базовое распределение студентов по универам, студенты просматривают универы, начиная с самого престижного,
@@ -379,7 +386,7 @@ class Modeller(limitStudent: Int = 100000) {
     }
 
     // наступил день Х - необходимо положить оригинал заявлений
-    private fun thirdStep(countIterations: Int = 60) {
+    private fun thirdStep(countIterations: Int = 20) {
         println("\n||| Начало третьего этапа моделирования |||\n")
         val students = helper.informationStudent
 

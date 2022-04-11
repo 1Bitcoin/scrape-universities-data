@@ -38,12 +38,12 @@ fun main() {
 //    val executor = MyQueryExecutor()
 //    executor.selectFullInformationStudent()
 
-    val generator = Generator()
-    generator.generateStudent()
+//    val generator = Generator()
+//    generator.generateStudent()
 
-//    val modeller = Modeller(limitStudent = 100000)
-//
-//    modeller.modeling()
+    val modeller = Modeller(limitStudent = 700000)
+
+    modeller.modeling()
 
 //    helper.enrichUniversityDataSet()
 //
