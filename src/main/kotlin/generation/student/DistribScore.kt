@@ -5,12 +5,12 @@ enum class DistribScore(val procent: Double) {
     FAIL(0.1),
 
     // От минимального до 70 баллов
-    MIDDLE(0.65),
+    MIDDLE(0.4),
 
     // От 70 до 80 баллов
-    SENIOR(0.18),
+    SENIOR(0.35),
 
     // От 80 до 99 баллов
-    GENIUS(0.07)
+    GENIUS(0.15)
 
 }

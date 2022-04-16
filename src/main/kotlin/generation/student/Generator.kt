@@ -15,7 +15,7 @@ class Generator {
     private val executor: MyQueryExecutor = MyQueryExecutor()
 
     val seniorRange = 70..80
-    val geniusRange = 80..99
+    val geniusRange = 80..100
 
     fun generateStudent() {
 
@@ -151,7 +151,7 @@ class Generator {
         // Создаем сданные ЕГЭ и их результаты для студента
         val listStudentEGEData = buildStudent(studentId, range)
 
-        // Сохраняем в список
+        // Сохраняем в список для подсчета кол-ва строк, которые будут сохранены в БД
         egeList.addAll(listStudentEGEData)
 
         // Получаем ид выбранных егэ для поиска подходящих угсн
@@ -191,7 +191,7 @@ class Generator {
         val actualYGSNId = mutableListOf<StudentYGSNData>()
 
         for (item in mapEGE) {
-            // УГСН, на которые требуется только 3 ЕГЭ
+            // УГСН, на которые есть 2 обязательных предмета и 2 по выбору (один из них)
             if (item.value.size < 5) {
                 // Обход по всем выбранным студентом ЕГЭ
                 for (egeId in setEGEId) {
@@ -203,7 +203,7 @@ class Generator {
                     }
                 }
             } else {
-                // Нужно чтобы хотя бы 2 сданных ЕГЭ входили во множество с возможными ЕГЭ для этого УГСН
+                // Нужно чтобы хотя бы 2 сданных ЕГЭ (кроме основных) входили во множество с возможными ЕГЭ для этого УГСН
                 var flagCount = 0
                 // Обход по всем выбранным студентом ЕГЭ
                 for (egeId in setEGEId) {

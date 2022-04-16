@@ -1,10 +1,9 @@
 import datasource.setUniversityDataSource
 import datasource.setUniversityYGSNDataSource
 import generation.student.Generator
-import modeling.ModelingHelper
 import modeling.Modeller
 import org.jetbrains.exposed.sql.Database
-import ru.batch.executor.MyQueryExecutor
+import java.io.File
 
 
 fun main() {
@@ -17,6 +16,10 @@ fun main() {
 
     val dataAboutUniversity = setUniversityDataSource()
     val dataAboutUniversityYGSN = setUniversityYGSNDataSource()
+
+    startModeling(710000)
+
+    //generateStudents()
 
     //val generator = Generator().generateStudent()
 
@@ -37,13 +40,6 @@ fun main() {
 
 //    val executor = MyQueryExecutor()
 //    executor.selectFullInformationStudent()
-
-//    val generator = Generator()
-//    generator.generateStudent()
-
-    val modeller = Modeller(limitStudent = 700000)
-
-    modeller.modeling()
 
 //    helper.enrichUniversityDataSet()
 //
@@ -72,6 +68,21 @@ fun main() {
 //    for (an in ans) {
 //        println(an[Student.id])
 //    }
+}
+
+fun generateStudents() {
+    val generator = Generator()
+    generator.generateStudent()
+}
+
+fun startModeling(limitStudents: Int) {
+    val bufferedWriter = File("D:\\logs.txt").bufferedWriter()
+
+    val modeller = Modeller(limitStudent = limitStudents, bufferedWriter)
+
+    modeller.modeling()
+
+    bufferedWriter.close()
 }
 
 

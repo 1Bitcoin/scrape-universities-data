@@ -1,11 +1,12 @@
 package modeling
 
 import modeling.dto.*
-import modeling.dto.result.UniversityTotalResult
+import java.io.BufferedWriter
+import java.io.File
 import java.util.concurrent.CopyOnWriteArrayList
 
 
-class Modeller(limitStudent: Int = 100000) {
+class Modeller(limitStudent: Int = 100000, bufferedWriter: BufferedWriter) {
     val countStudents = limitStudent
 
     val helper = ModelingHelper(limitStudent)
@@ -22,6 +23,8 @@ class Modeller(limitStudent: Int = 100000) {
     var currentMouth = 6
     var currentYear = 21
 
+    val writer = bufferedWriter
+
     fun modeling() {
         val start = System.currentTimeMillis()
 
@@ -31,18 +34,26 @@ class Modeller(limitStudent: Int = 100000) {
 
         val end = System.currentTimeMillis()
 
-        println("Время моделирования при $countStudents студентах = " + (end - start) / 1000 + " секунд")
+        val messageModeling = "Время моделирования при $countStudents студентах = " + (end - start) / 1000 + " секунд\n"
+        println(messageModeling)
+        writer.write(messageModeling)
 
-        println("Анализ результатов проведенного моделирования")
+        val messageAnalyze = "Анализ результатов проведенного моделирования\n"
+        println(messageAnalyze)
+        writer.write(messageAnalyze)
 
-        analyzer.analyzeResults(universities)
+        analyzer.analyzeResults(universities, writer)
     }
 
     // Базовое распределение студентов по универам, студенты просматривают универы, начиная с самого престижного,
     // проверяют наличие интересующего УГСН, смотрят какие ЕГЭ необходимы и сравнивают со своими результатами
     // Заявления можно подать не более чем в 5 вузов, не более чем на 10 УГСН
     private fun firstStep() {
-        println("\n||| Начало первого этапа моделирования |||\n")
+        val messageFirstStep = "\n||| Начало первого этапа моделирования |||\n"
+
+        println(messageFirstStep)
+        writer.write(messageFirstStep)
+
 
         val currentDate = "$currentDay/$currentMouth/$currentYear $currentHour:$currentMinutes:00"
 
@@ -56,7 +67,7 @@ class Modeller(limitStudent: Int = 100000) {
             for (university in universities.values) {
 
                 // Доки можно класть максимум в 5 универов!
-                if (student.getCountUniversities() < 6) {
+                if (student.getCountUniversities() < 5) {
                     val informationYGSNCollection = university.getInformationYGSNMap().values
 
                     val universityId = university.universityData.universityId
@@ -79,6 +90,7 @@ class Modeller(limitStudent: Int = 100000) {
                     // Проверяем есть ли интересующий УГСН в ВУЗе
                     for (informationYGSN in informationYGSNCollection) {
 
+
                         // Если в ВУЗе есть интересующий нас УГСН
                         if (informationYGSN.ygsnData.ygsnId in studentYGSN) {
 
@@ -93,21 +105,32 @@ class Modeller(limitStudent: Int = 100000) {
                                     State.COPY, currentDate)
                                 student.addRequest(universityId, ChoiceStudent(informationYGSN.ygsnData.ygsnId, State.COPY))
 
-                                println("Абитуриент $studentId подал копию заявления в университет " +
+                                val messageSubmitFirstStep = "Абитуриент $studentId подал копию заявления в университет " +
                                         "${university.universityData.universityId} на УГСН ${informationYGSN.ygsnData.ygsnId} " +
                                         "| средний балл по УГСН: ${informationYGSN.ygsnData.averageScoreBudgetEGE} " +
-                                        "| средний балл студента: $averageScoreStudent")
+                                        "| средний балл студента: $averageScoreStudent\n"
+
+                                println(messageSubmitFirstStep)
+                                writer.write(messageSubmitFirstStep)
+
                             }
                         }
                     }
                 } else {
-                    println("Абитуриент $studentId может подать заявление максимум в 5 универов!")
+                    val messageMaxUniversities = "Абитуриент $studentId может подать заявление максимум в 5 универов!\n"
+
+                    println(messageMaxUniversities)
+                    writer.write(messageMaxUniversities)
+
                     break
                 }
             }
 
             if (student.getCountUniversities() == 0) {
-                println("Абитуриент $studentId не смог подать копию ни в один университет!")
+                val messageZeroSubmit = "Абитуриент $studentId не смог подать копию ни в один университет!\n"
+
+                println(messageZeroSubmit)
+                writer.write(messageZeroSubmit)
             }
         }
 
@@ -119,7 +142,11 @@ class Modeller(limitStudent: Int = 100000) {
     // то забирает копию своего заявления и кладет в другой универ, где есть места на интересующем его УГСН.
     // Так продолжается до дня X - когда надо положить оригинал и произойдет зачисление
     private fun secondStep(countDays: Int = 30) {
-        println("\n||| Начало второго этапа моделирования |||\n")
+        val messageSecondStep = "\n||| Начало второго этапа моделирования |||\n"
+
+        println(messageSecondStep)
+        writer.write(messageSecondStep)
+
         val students = helper.informationStudent
 
         // Моделируем приемную кампанию длительностью countDays(по умолчанию 30)
@@ -188,8 +215,11 @@ class Modeller(limitStudent: Int = 100000) {
                                     universities[universityId]!!.revokeRequest(studentId, ygsnId)
                                     student.revokeRequest(universityId, choseStudent)
 
-                                    println("Абитуриент $studentId вышел за пределы бюджетных мест в университете " +
-                                            "$universityId на УГСН $ygsnId. Заявление перекладывается в другой ВУЗ.")
+                                    val messageOutOfNumbers = "Абитуриент $studentId вышел за пределы бюджетных мест в университете " +
+                                            "$universityId на УГСН $ygsnId. Заявление перекладывается в другой ВУЗ.\n"
+
+                                    println(messageOutOfNumbers)
+                                    writer.write(messageOutOfNumbers)
 
                                     // Ищем подходящий универ, в который еще не подавали и нужный УГСН в нем
                                     searchUniversities(listIterator, student, mutableListOf(ygsnId), currentDate)
@@ -206,16 +236,23 @@ class Modeller(limitStudent: Int = 100000) {
                                 }
 
                             } else {
-                                println("Абитуриент $studentId вышел за пределы бюджетных мест в университете " +
-                                        "$universityId на УГСН $ygsnId. Заявление необходимо положить в еще один ВУЗ.")
+
+                                val messageOutOfNumbers1 = "Абитуриент $studentId вышел за пределы бюджетных мест в университете " +
+                                        "$universityId на УГСН $ygsnId. Заявление необходимо положить в еще один ВУЗ.\n"
+
+                                println(messageOutOfNumbers1)
+                                writer.write(messageOutOfNumbers1)
 
                                 // Ищем подходящий универ, в который еще не подавали и нужный УГСН в нем
                                 searchUniversities(listIterator, student, mutableListOf(ygsnId), currentDate)
                             }
 
                         } else {
-                            println("Абитуриент $studentId находится в пределе бюджетных мест в университете " +
-                                    "$universityId на УГСН $ygsnId. Заявление не трогаем.")
+                            val messageNumbersOk = "Абитуриент $studentId находится в пределе бюджетных мест в университете " +
+                                    "$universityId на УГСН $ygsnId. Заявление не трогаем.\n"
+
+                            println(messageNumbersOk)
+                            writer.write(messageNumbersOk)
                         }
                     }
 
@@ -245,15 +282,22 @@ class Modeller(limitStudent: Int = 100000) {
                                 student.revokeRequest(universityId, choseStudent)
                             }
 
+                            val messageRevokeOldRequest = "Абитуриент $studentId вышел за пределы бюджетных мест в университете " +
+                                    "$universityId. Прошлые заявления на УГСН $ygsnFailList в данном ВУЗе были отозваны. " +
+                                    "Заявления перекладываются в другой подходящий ВУЗ.\n"
+
+                            println(messageRevokeOldRequest)
+                            writer.write(messageRevokeOldRequest)
+
                             // Ищем подходящий универ, в который еще не подавали и нужный УГСН в нем
                             searchUniversities(listIterator, student, ygsnFailList, currentDate)
 
-                            println("Абитуриент $studentId вышел за пределы бюджетных мест в университете " +
-                                    "$universityId. Прошлые заявления в данном ВУЗе были отозваны. " +
-                                    "Заявления перекладываются в другой подходящий ВУЗ.")
                         } else {
-                            println("Абитуриент $studentId вышел за пределы бюджетных мест в университете " +
-                                    "$universityId по некоторым УГСН. Заявления не трогаем.")
+                            val messageOk = "Абитуриент $studentId вышел за пределы бюджетных мест в университете " +
+                                    "$universityId по некоторым УГСН. Заявления не трогаем.\n"
+
+                            println(messageOk)
+                            writer.write(messageOk)
                         }
                     }
                 }
@@ -369,10 +413,13 @@ class Modeller(limitStudent: Int = 100000) {
 
                     student.addRequest(universityId, ChoiceStudent(item.ygsnId, item.state), listIterator)
 
-                    println("Абитуриент $studentId ПЕРЕПОДАЛ копию заявления в университет " +
+                    val messageNewRequest = "Абитуриент $studentId ПЕРЕПОДАЛ копию заявления в университет " +
                             "${university.universityData.universityId} на УГСН ${item.ygsnId} " +
-                            "| место в рейтинге ${item.studentPosition} |" +
-                            "бюджетных мест ${item.countBudget}.")
+                            "| место в рейтинге ${item.studentPosition} " +
+                            "| бюджетных мест ${item.countBudget}.\n"
+
+                    println(messageNewRequest)
+                    writer.write(messageNewRequest)
                 }
 
                 // Необходимо удалить из массива УГСН ид те ид, на которые подали заявление
@@ -381,16 +428,23 @@ class Modeller(limitStudent: Int = 100000) {
         }
 
         if (ygsnList.isNotEmpty()) {
-            println("Абитуриент $studentId НЕ НАШЕЛ КУДА переподать копии на следующие УГСН: $ygsnList.")
+            val messageNotFound = "Абитуриент $studentId НЕ НАШЕЛ КУДА переподать копии на следующие УГСН: $ygsnList.\n"
+
+            println(messageNotFound)
+            writer.write(messageNotFound)
         }
     }
 
     // наступил день Х - необходимо положить оригинал заявлений
     private fun thirdStep(countIterations: Int = 20) {
-        println("\n||| Начало третьего этапа моделирования |||\n")
+        val messageThirdStep = "\n||| Начало третьего этапа моделирования |||\n"
+
+        println(messageThirdStep)
+        writer.write(messageThirdStep)
+
         val students = helper.informationStudent
 
-        // Моделируем приемную кампанию длительностью countDays(по умолчанию 30)
+        // Укрупненное моделирование дня подачи оригиналов заявлений
         for (i in 1..countIterations) {
             val currentDate = "$currentDay/$currentMouth/$currentYear $currentHour:$currentMinutes:00"
 
@@ -403,7 +457,11 @@ class Modeller(limitStudent: Int = 100000) {
                 val studentId = student.studentData.studentId
 
                 if (student.getCountUniversities() == 0) {
-                    println("Абитуриент $studentId не имеет копий заявлений ни в одном университете! (пропускается)")
+                    val messageZeroCopy = "Абитуриент $studentId не имеет копий заявлений ни в одном университете! (пропускается)\n"
+
+                    println(messageZeroCopy)
+                    writer.write(messageZeroCopy)
+
                     continue
                 }
 
@@ -510,9 +568,16 @@ class Modeller(limitStudent: Int = 100000) {
                 // Если студенту не нашел место под свой оригинал
                 if (resultChoice == null) {
                     if (student.getCurrentOriginal() != null) {
-                        println("Абитуриент $studentId НЕ НАШЕЛ куда ЛУЧШЕ положить оригинал заявления(уже есть активный).")
+
+                        val messageOk = "Абитуриент $studentId НЕ НАШЕЛ куда ЛУЧШЕ положить оригинал заявления(уже есть активный).\n"
+
+                        println(messageOk)
+                        writer.write(messageOk)
                     } else {
-                        println("Абитуриент $studentId ВООБЩЕ НЕ НАШЕЛ куда положить оригинал заявления(активных нет).")
+                        val messageNotOk = "Абитуриент $studentId ВООБЩЕ НЕ НАШЕЛ куда положить оригинал заявления(активных нет).\n"
+
+                        println(messageNotOk)
+                        writer.write(messageNotOk)
                     }
                 } else {
                     val currentOriginalChoice = student.getCurrentOriginal()
@@ -530,9 +595,12 @@ class Modeller(limitStudent: Int = 100000) {
                             originalUniversity.changeState(originalStudentId, originalYGSNId, State.COPY, currentDate)
                             student.changeState(originalUniversity.universityData.universityId, originalYGSNId, State.COPY)
 
-                            println("Абитуриент $studentId убрал ОРИГИНАЛ заявления из университета " +
+                            val message1 = "Абитуриент $studentId убрал ОРИГИНАЛ заявления из университета " +
                                     "${originalUniversity.universityData.universityId} на УГСН " +
-                                    "${currentOriginalChoice.choiceStudent.ygsnId}")
+                                    "${currentOriginalChoice.choiceStudent.ygsnId}\n"
+
+                            println(message1)
+                            writer.write(message1)
 
                             // И кладем новый оригинал
                             val university = universities[resultChoice.universityId]
@@ -543,13 +611,20 @@ class Modeller(limitStudent: Int = 100000) {
                             student.changeState(university!!.universityData.universityId, resultYGSNId, State.ORIGINAL)
                             student.setCurrentOriginal(resultChoice)
 
-                            println("Абитуриент $studentId положил ОРИГИНАЛ заявления в более престижный университет " +
-                                    "${university.universityData.universityId} на УГСН $resultYGSNId.")
+                            val message2 = "Абитуриент $studentId положил ОРИГИНАЛ заявления в более престижный университет " +
+                                    "${university.universityData.universityId} на УГСН $resultYGSNId.\n"
+
+                            println(message2)
+                            writer.write(message2)
 
                         } else {
-                            println("Абитуриент $studentId оставил ОРИГИНАЛ заявления в университете " +
-                                    "${originalUniversity.universityData.universityId} на УГСН " +
-                                    "${currentOriginalChoice.choiceStudent.ygsnId}")
+
+                            val message3 = "Абитуриент $studentId оставил ОРИГИНАЛ заявления в университете " +
+                            "${originalUniversity.universityData.universityId} на УГСН " +
+                                    "${currentOriginalChoice.choiceStudent.ygsnId}\n"
+
+                            println(message3)
+                            writer.write(message3)
                         }
                     } else {
                         // Если оригинал еще не подавался ни в один ВУЗ - то подаем
@@ -561,8 +636,12 @@ class Modeller(limitStudent: Int = 100000) {
                         student.changeState(university!!.universityData.universityId, resultYGSNId, State.ORIGINAL)
                         student.setCurrentOriginal(resultChoice)
 
-                        println("Абитуриент $studentId первый раз положил ОРИГИНАЛ заявления в университет " +
-                                "${university.universityData.universityId} на УГСН $resultYGSNId.")
+
+                        val message4 = "Абитуриент $studentId первый раз положил ОРИГИНАЛ заявления в университет " +
+                                "${university.universityData.universityId} на УГСН $resultYGSNId.\n"
+
+                        println(message4)
+                        writer.write(message4)
                     }
                 }
             }
@@ -573,7 +652,7 @@ class Modeller(limitStudent: Int = 100000) {
                 currentHour++
             }
 
-            println("Итерация завершена")
+            println("Итерация завершена\n")
         }
     }
 

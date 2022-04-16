@@ -5,12 +5,13 @@ import modeling.dto.InformationUniversity
 import modeling.dto.State
 import modeling.dto.result.UniversityTotalResult
 import modeling.dto.result.YGSNTotalResult
+import java.io.BufferedWriter
 import kotlin.math.round
 
 class Analyzer() {
     val totalResultModelling = mutableListOf<UniversityTotalResult>()
 
-    fun analyzeResults(universities: LinkedHashMap<Int, InformationUniversity>) {
+    fun analyzeResults(universities: LinkedHashMap<Int, InformationUniversity>, writer: BufferedWriter) {
         for (university in universities.values) {
             val universityId = university.universityData.universityId
             var minScoreOfUniversity = 100.0
@@ -85,19 +86,29 @@ class Analyzer() {
         }
 
         for (resultUniversity in totalResultModelling) {
-            println("Ид университета: ${resultUniversity.universityId} " +
+            val messageUniversity = "\nИд университета: ${resultUniversity.universityId} " +
                     "| Средний балл университета: ${resultUniversity.averageAllBudgetScoreUniversity} " +
                     "| Минимальный балл по университету: ${resultUniversity.minScore} " +
-                    "| Максимальный балл по университету ${resultUniversity.maxScore}")
+                    "| Максимальный балл по университету ${resultUniversity.maxScore}\n"
 
-            println("Результаты по УГСН:")
+            println(messageUniversity)
+            writer.write(messageUniversity)
+
+            val messageResultYGSN = "Результаты по УГСН:\n"
+            println(messageResultYGSN)
+            writer.write(messageResultYGSN)
+
 
             for (resultYGSN in resultUniversity.resultYGSNList) {
-                println("Ид УГСН: ${resultYGSN.ygsnId} " +
+                val messageYGSN = "Ид УГСН: ${resultYGSN.ygsnId} " +
                         "| Средний балл по УГСН: ${resultYGSN.averageScore} " +
                         "| Минимальный балл по УГСН: ${resultYGSN.minScore} " +
                         "| Максимальный балл по УГСН: ${resultYGSN.maxScore} " +
-                        "| Кол-во поступивших абитриуентов: ${resultYGSN.countStudents}")
+                        "| Кол-во поступивших абитриуентов: ${resultYGSN.countStudents}\n"
+
+                println(messageYGSN)
+                writer.write(messageYGSN)
+
             }
             println()
         }
