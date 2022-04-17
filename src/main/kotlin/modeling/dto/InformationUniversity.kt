@@ -63,10 +63,6 @@ class InformationUniversity(currentUniversityData: UniversityData, currentYGSNLi
         }
     }
 
-    fun analyzeSituation(currentStudentId: Int): Boolean {
-        return true
-    }
-
     private fun fillInformationYGSNMap(currentYGSNList: MutableList<UniversityYGSNMIREAData>): MutableMap<Int, InformationYGSN> {
         val informationYGSNMap: MutableMap<Int, InformationYGSN> = mutableMapOf()
 

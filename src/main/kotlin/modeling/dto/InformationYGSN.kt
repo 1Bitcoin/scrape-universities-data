@@ -8,6 +8,6 @@ class InformationYGSN(currentYGSN: UniversityYGSNMIREAData) {
     val ygsnData = currentYGSN
 
     // Конкурсный список, в котором будут находиться заявления абитуриентов
-    val competitiveList: MutableList<Statement> = mutableListOf()
+    var competitiveList: MutableList<Statement> = mutableListOf()
 
 }

@@ -8,14 +8,18 @@ import modeling.dto.result.YGSNTotalResult
 import java.io.BufferedWriter
 import kotlin.math.round
 
-class Analyzer() {
+class Analyzer(year: Int) {
     val totalResultModelling = mutableListOf<UniversityTotalResult>()
 
     fun analyzeResults(universities: LinkedHashMap<Int, InformationUniversity>, writer: BufferedWriter) {
         for (university in universities.values) {
             val universityId = university.universityData.universityId
+
             var minScoreOfUniversity = 100.0
             var maxScoreOfUniversity = 0.0
+
+            var averageScoreUniversity = 0.0
+            var countStudents = 0
 
             val resultYGSNList = mutableListOf<YGSNTotalResult>()
 
@@ -46,11 +50,17 @@ class Analyzer() {
                         // Число зачисленных студентов на данный УГСН
                         val totalSize = resultList.size
 
+                        // Считаем число студентов по всему универу для расчета среднего балла
+                        countStudents += totalSize
+
                         // Уменьшаем кол-во доступных бюджетных мест
                         informationYGSN.ygsnData.numbersBudgetStudents - totalSize
 
-                        // Считаем средний балл по УГСН
-                        resultList.forEach { averageScore += it.score }
+                        // Очищаем конкурсный список
+                        informationYGSN.competitiveList = mutableListOf()
+
+                        // Считаем средний балл по УГСН и заодно считаем общее кол-во студентов, зачисленных в универ
+                        resultList.forEach { averageScore += it.score; averageScoreUniversity += it.score }
                         averageScore /= totalSize
                         averageScore = round(averageScore)
 
@@ -75,21 +85,29 @@ class Analyzer() {
             }
 
             // Считаем средний балл по универу
-            var averageScoreUniversity = 0.0
-
-            resultYGSNList.forEach { averageScoreUniversity += it.averageScore }
-            averageScoreUniversity /= resultYGSNList.size
+            averageScoreUniversity /= countStudents
             averageScoreUniversity = round(averageScoreUniversity)
 
             totalResultModelling.add(UniversityTotalResult(universityId, averageScoreUniversity, minScoreOfUniversity,
-                maxScoreOfUniversity, resultYGSNList))
+                maxScoreOfUniversity, resultYGSNList, countStudents))
         }
 
         for (resultUniversity in totalResultModelling) {
-            val messageUniversity = "\nИд университета: ${resultUniversity.universityId} " +
-                    "| Средний балл университета: ${resultUniversity.averageAllBudgetScoreUniversity} " +
-                    "| Минимальный балл по университету: ${resultUniversity.minScore} " +
-                    "| Максимальный балл по университету ${resultUniversity.maxScore}\n"
+            val universityId = resultUniversity.universityId
+
+            val universityInformation = universities[universityId]!!
+            val universityName = universityInformation.universityData.name
+            val countStudents = resultUniversity.countStudents
+            val prevAverageAllStudentsEGEUniversity = universityInformation.universityData.averageAllStudentsEGE
+
+            val messageUniversity = "\nID университета: ${resultUniversity.universityId} " +
+                    "| Название: $universityName " +
+                    "| Полученный средний балл: ${resultUniversity.averageAllBudgetScoreUniversity} " +
+                    "| Прошлый средний балл: $prevAverageAllStudentsEGEUniversity " +
+                    "| Изменение среднего балла: ${resultUniversity.averageAllBudgetScoreUniversity - prevAverageAllStudentsEGEUniversity} " +
+                    "| Минимальный балл: ${resultUniversity.minScore} " +
+                    "| Максимальный балл ${resultUniversity.maxScore} " +
+                    "| Кол-во поступивших: $countStudents\n"
 
             println(messageUniversity)
             writer.write(messageUniversity)
@@ -98,13 +116,17 @@ class Analyzer() {
             println(messageResultYGSN)
             writer.write(messageResultYGSN)
 
-
             for (resultYGSN in resultUniversity.resultYGSNList) {
-                val messageYGSN = "Ид УГСН: ${resultYGSN.ygsnId} " +
-                        "| Средний балл по УГСН: ${resultYGSN.averageScore} " +
-                        "| Минимальный балл по УГСН: ${resultYGSN.minScore} " +
-                        "| Максимальный балл по УГСН: ${resultYGSN.maxScore} " +
-                        "| Кол-во поступивших абитриуентов: ${resultYGSN.countStudents}\n"
+                val ygsnId = resultYGSN.ygsnId
+                val prevAverageAllStudentsEGEYGSN = universityInformation.getInformationYGSNMap()[ygsnId]!!.ygsnData.averageScoreBudgetEGE
+
+                val messageYGSN = "ID УГСН: ${resultYGSN.ygsnId} " +
+                        "| Полученный средний балл: ${resultYGSN.averageScore} " +
+                        "| Прошлый средний балл: $prevAverageAllStudentsEGEYGSN " +
+                        "| Изменение среднего балла: ${resultYGSN.averageScore - prevAverageAllStudentsEGEYGSN} " +
+                        "| Минимальный балл: ${resultYGSN.minScore} " +
+                        "| Максимальный балл: ${resultYGSN.maxScore} " +
+                        "| Кол-во поступивших: ${resultYGSN.countStudents}\n"
 
                 println(messageYGSN)
                 writer.write(messageYGSN)

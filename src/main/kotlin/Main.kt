@@ -17,7 +17,7 @@ fun main() {
     val dataAboutUniversity = setUniversityDataSource()
     val dataAboutUniversityYGSN = setUniversityYGSNDataSource()
 
-    startModeling(710000)
+    startModeling(400000, 2020)
 
     //generateStudents()
 
@@ -75,10 +75,10 @@ fun generateStudents() {
     generator.generateStudent()
 }
 
-fun startModeling(limitStudents: Int) {
+fun startModeling(limitStudents: Int, modelingYear: Int) {
     val bufferedWriter = File("D:\\logs.txt").bufferedWriter()
 
-    val modeller = Modeller(limitStudent = limitStudents, bufferedWriter)
+    val modeller = Modeller(limitStudent = limitStudents, modelingYear, bufferedWriter)
 
     modeller.modeling()
 
