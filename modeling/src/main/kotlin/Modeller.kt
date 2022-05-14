@@ -2,10 +2,13 @@ package main.kotlin
 
 import main.kotlin.datasource.setUniversityDataSource
 import main.kotlin.datasource.setUniversityYGSNDataSource
+import main.kotlin.dto.ModellerLog
 import main.kotlin.generation.student.Generator
 import main.kotlin.modeling.Modeller
 import org.jetbrains.exposed.sql.Database
+import org.springframework.web.client.RestTemplate
 import java.io.File
+import java.net.URI
 
 
 fun main() {
@@ -19,7 +22,7 @@ fun main() {
     val dataAboutUniversity = setUniversityDataSource()
     val dataAboutUniversityYGSN = setUniversityYGSNDataSource()
 
-    startModeling(4000, 2020)
+    startModeling(100, 2020)
 
     //generateStudents()
 
@@ -78,7 +81,15 @@ fun generateStudents() {
 }
 
 fun startModeling(limitStudents: Int, modelingYear: Int) {
+    val restTemplate = RestTemplate()
+
+    val baseUrl = "http://localhost:8081/logs"
+    val uri = URI(baseUrl)
+
     val bufferedWriter = File("D:\\logs.txt").bufferedWriter()
+
+    val startMessage = "Получение информации о студентах и университетах"
+    restTemplate.postForEntity(uri, ModellerLog(startMessage), String::class.java)
 
     val modeller = Modeller(limitStudent = limitStudents, modelingYear, bufferedWriter)
 

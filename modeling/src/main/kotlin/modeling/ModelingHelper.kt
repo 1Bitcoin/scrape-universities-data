@@ -1,11 +1,18 @@
 package main.kotlin.modeling
 
+import main.kotlin.dto.ModellerLog
 import main.kotlin.modeling.dto.InformationStudent
 import main.kotlin.modeling.dto.InformationUniversity
 import main.kotlin.org.jetbrains.database.student.selectEGE
 import main.kotlin.ru.batch.executor.MyQueryExecutor
+import org.springframework.web.client.RestTemplate
+import java.net.URI
 
 class ModelingHelper(limitStudent: Int, year: Int) {
+
+    val restTemplate = RestTemplate()
+    val baseUrl = "http://localhost:8081/logs"
+    val uri = URI(baseUrl)
 
     // Ключ - ид ВУЗа, значение - инфа о ВУЗе
     lateinit var informationUniversityMap: LinkedHashMap<Int, InformationUniversity>

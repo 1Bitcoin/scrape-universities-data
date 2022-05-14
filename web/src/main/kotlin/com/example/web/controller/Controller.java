@@ -1,25 +1,29 @@
 package com.example.web.controller;
 
+import com.example.web.model.AjaxResponseBody;
+import com.example.web.service.ModellerService;
+import main.kotlin.dto.ModellerLog;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
-import javax.annotation.PostConstruct;
 import java.io.IOException;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 
 @RestController
 public class Controller {
 
     private List<SseEmitter> emitters = new CopyOnWriteArrayList<>();
     private static final Logger LOGGER = LoggerFactory.getLogger(Controller.class);
+
+    private final ModellerService service;
+
+    public Controller(ModellerService service) {
+        this.service = service;
+    }
 
     @GetMapping("/sse-endpoint-address")
     @CrossOrigin
@@ -50,14 +54,22 @@ public class Controller {
     }
 
     @PostMapping(value = "/logs")
-    public void dispatchEventToClients(@RequestBody String log) {
+    public void dispatchEventToClients(@RequestBody ModellerLog log) {
         for (SseEmitter sseEmitter : emitters) {
             try {
-                sseEmitter.send(SseEmitter.event().name("message").data(log));
+                sseEmitter.send(SseEmitter.event().name("message").data(log.getMessage()));
             } catch (IOException e) {
                 e.printStackTrace();
                 emitters.remove(sseEmitter);
             }
         }
+    }
+
+    @PostMapping(value = "/modelling")
+    public ResponseEntity<AjaxResponseBody> startModelling() {
+        AjaxResponseBody result = new AjaxResponseBody();
+        service.startModelling();
+
+        return ResponseEntity.ok(result);
     }
 }

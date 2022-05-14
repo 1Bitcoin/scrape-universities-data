@@ -178,6 +178,8 @@
 
                         </div>
 
+                        <div id="feedback"></div>
+
                     </form>
 
 
@@ -190,13 +192,13 @@
 
     </section>
 
-
     <textarea id="one" rows="20" cols="203"></textarea>
 
-
-    <button type="button" th:onclick="|window.location.href='/start'|"> Start modelling</button>
-    <button type="button" th:onclick="|window.location.href='/message'|"> Message</button>
-    <button type="button" th:onclick="showAlert()">Show Alert</button>
+    <form class="form-horizontal" id="search-form">
+        <button type="submit" id="bth-search"
+                class="btn btn-primary btn-lg">Начать моделирование
+        </button>
+    </form>
 
     <!--======================================== 
 
@@ -321,6 +323,10 @@
     <script type="text/javascript" th:src="@{/assets/js/plugins/Magnific-Popup-master/Magnific-Popup-master/dist/jquery.magnific-popup.js}"></script>
 
     <script type="text/javascript" th:src="@{/assets/js/main.js}"></script>
+
+    <script type="text/javascript" src="webjars/jquery/2.2.4/jquery.min.js"></script>
+
+    <script type="text/javascript" th:src="@{/js/ajax.js}"></script>
 </body>
 
 

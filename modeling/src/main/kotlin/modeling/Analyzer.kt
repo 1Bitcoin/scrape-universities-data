@@ -1,14 +1,24 @@
 package main.kotlin.modeling
 
+import main.kotlin.dto.ModellerLog
 import main.kotlin.modeling.dto.InformationUniversity
 import main.kotlin.modeling.dto.State
 import main.kotlin.modeling.dto.result.UniversityTotalResult
 import main.kotlin.modeling.dto.result.YGSNTotalResult
+import org.springframework.web.client.RestTemplate
 import java.io.BufferedWriter
+import java.net.URI
 import kotlin.math.round
 
 class Analyzer(year: Int) {
+
+    val restTemplate = RestTemplate()
+    val baseUrl = "http://localhost:8081/logs"
+    val uri = URI(baseUrl)
+
     val totalResultModelling = mutableListOf<UniversityTotalResult>()
+
+    var statisticsCountStudent = 0
 
     fun analyzeResults(universities: LinkedHashMap<Int, InformationUniversity>, writer: BufferedWriter) {
         for (university in universities.values) {
@@ -91,6 +101,8 @@ class Analyzer(year: Int) {
                 UniversityTotalResult(universityId, averageScoreUniversity, minScoreOfUniversity,
                 maxScoreOfUniversity, resultYGSNList, countStudents)
             )
+
+            statisticsCountStudent += countStudents
         }
 
         for (resultUniversity in totalResultModelling) {
@@ -101,39 +113,47 @@ class Analyzer(year: Int) {
             val countStudents = resultUniversity.countStudents
             val prevAverageAllStudentsEGEUniversity = universityInformation.universityData.averageAllStudentsEGE
 
-            val messageUniversity = "\nID университета: ${resultUniversity.universityId} " +
-                    "| Название: $universityName " +
-                    "| Полученный средний балл: ${resultUniversity.averageAllBudgetScoreUniversity} " +
-                    "| Прошлый средний балл: $prevAverageAllStudentsEGEUniversity " +
-                    "| Изменение среднего балла: ${resultUniversity.averageAllBudgetScoreUniversity - prevAverageAllStudentsEGEUniversity} " +
-                    "| Минимальный балл: ${resultUniversity.minScore} " +
-                    "| Максимальный балл ${resultUniversity.maxScore} " +
-                    "| Кол-во поступивших: $countStudents\n"
+            if (countStudents != 0) {
+                val messageUniversity = "ID университета: ${resultUniversity.universityId} " +
+                        "| Название: $universityName " +
+                        "| Полученный средний балл: ${resultUniversity.averageAllBudgetScoreUniversity} " +
+                        "| Прошлый средний балл: $prevAverageAllStudentsEGEUniversity " +
+                        "| Изменение среднего балла: ${resultUniversity.averageAllBudgetScoreUniversity - prevAverageAllStudentsEGEUniversity} " +
+                        "| Минимальный балл: ${resultUniversity.minScore} " +
+                        "| Максимальный балл ${resultUniversity.maxScore} " +
+                        "| Кол-во поступивших: $countStudents\n"
 
-            println(messageUniversity)
-            writer.write(messageUniversity)
+                println(messageUniversity)
+                writer.write(messageUniversity)
+                restTemplate.postForEntity(uri, ModellerLog(messageUniversity), String::class.java)
 
-            val messageResultYGSN = "Результаты по УГСН:\n"
-            println(messageResultYGSN)
-            writer.write(messageResultYGSN)
+                val messageResultYGSN = "Результаты по УГСН:\n"
+                println(messageResultYGSN)
+                writer.write(messageResultYGSN)
+                restTemplate.postForEntity(uri, ModellerLog(messageResultYGSN), String::class.java)
 
-            for (resultYGSN in resultUniversity.resultYGSNList) {
-                val ygsnId = resultYGSN.ygsnId
-                val prevAverageAllStudentsEGEYGSN = universityInformation.getInformationYGSNMap()[ygsnId]!!.ygsnData.averageScoreBudgetEGE
+                for (resultYGSN in resultUniversity.resultYGSNList) {
+                    val ygsnId = resultYGSN.ygsnId
+                    val prevAverageAllStudentsEGEYGSN = universityInformation.getInformationYGSNMap()[ygsnId]!!.ygsnData.averageScoreBudgetEGE
 
-                val messageYGSN = "ID УГСН: ${resultYGSN.ygsnId} " +
-                        "| Полученный средний балл: ${resultYGSN.averageScore} " +
-                        "| Прошлый средний балл: $prevAverageAllStudentsEGEYGSN " +
-                        "| Изменение среднего балла: ${resultYGSN.averageScore - prevAverageAllStudentsEGEYGSN} " +
-                        "| Минимальный балл: ${resultYGSN.minScore} " +
-                        "| Максимальный балл: ${resultYGSN.maxScore} " +
-                        "| Кол-во поступивших: ${resultYGSN.countStudents}\n"
+                    val messageYGSN = "ID УГСН: ${resultYGSN.ygsnId} " +
+                            "| Полученный средний балл: ${resultYGSN.averageScore} " +
+                            "| Прошлый средний балл: $prevAverageAllStudentsEGEYGSN " +
+                            "| Изменение среднего балла: ${resultYGSN.averageScore - prevAverageAllStudentsEGEYGSN} " +
+                            "| Минимальный балл: ${resultYGSN.minScore} " +
+                            "| Максимальный балл: ${resultYGSN.maxScore} " +
+                            "| Кол-во поступивших: ${resultYGSN.countStudents}\n"
 
-                println(messageYGSN)
-                writer.write(messageYGSN)
+                    println(messageYGSN)
+                    writer.write(messageYGSN)
+                    restTemplate.postForEntity(uri, ModellerLog(messageYGSN), String::class.java)
 
+
+                }
+                println()
+                restTemplate.postForEntity(uri, ModellerLog(""), String::class.java)
             }
-            println()
         }
+        println("Итого зачислено $statisticsCountStudent студентов")
     }
 }
