@@ -52,9 +52,7 @@
 
     <link th:href="@{/assets/css/main.css}" rel="stylesheet">
 
-    <script th:inline="javascript">
-        var flag = /*[[${request}]]*/ true;
-    </script>
+    <script type="text/javascript" th:src="@{/js/request.js}"></script>
 
 </head>
 
@@ -193,16 +191,12 @@
     </section>
 
 
-    <textarea name="name" rows="20" cols="203" th:text="${message}"></textarea>
-
+    <textarea id="one" rows="20" cols="203"></textarea>
 
 
     <button type="button" th:onclick="|window.location.href='/start'|"> Start modelling</button>
     <button type="button" th:onclick="|window.location.href='/message'|"> Message</button>
     <button type="button" th:onclick="showAlert()">Show Alert</button>
-
-    <button type="button" th:onclick="showName(flag)">Show Name</button>
-
 
     <!--======================================== 
 
@@ -210,9 +204,11 @@
 
     ========================================-->
 
+
+
     <footer>
 
-        <div class="container">
+        <div class="container" id = "pack">
 
             <div class="row">
 
@@ -325,8 +321,6 @@
     <script type="text/javascript" th:src="@{/assets/js/plugins/Magnific-Popup-master/Magnific-Popup-master/dist/jquery.magnific-popup.js}"></script>
 
     <script type="text/javascript" th:src="@{/assets/js/main.js}"></script>
-
-    <script type="text/javascript" th:src="@{/js/request.js}"></script>
 </body>
 
 
