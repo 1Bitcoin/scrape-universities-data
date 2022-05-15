@@ -11,6 +11,10 @@ class ModellerService {
     final var FILE_PATH = "D:\\logs.txt"
 
     fun startModelling() {
-        main()
+        main("modelling")
+    }
+
+    fun startGenerateStudent() {
+        main("generating")
     }
 }

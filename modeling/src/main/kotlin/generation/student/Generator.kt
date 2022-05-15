@@ -1,5 +1,6 @@
 package main.kotlin.generation.student
 
+import main.kotlin.dto.ModellerLog
 import main.kotlin.dto.student.DistribStudentData
 import main.kotlin.dto.student.StudentData
 import main.kotlin.dto.student.StudentEGEData
@@ -7,6 +8,8 @@ import main.kotlin.dto.student.StudentYGSNData
 import main.kotlin.org.jetbrains.database.student.selectDistrib
 import main.kotlin.org.jetbrains.database.student.selectEGE
 import main.kotlin.ru.batch.executor.MyQueryExecutor
+import org.springframework.web.client.RestTemplate
+import java.net.URI
 import kotlin.random.Random
 
 class Generator {
@@ -18,12 +21,23 @@ class Generator {
     val seniorRange = 70..80
     val geniusRange = 80..100
 
+    val procentMiddleChange = 60
+    val procentSeniorChange = 80
+    val procentGeniusChange = 100
+
+    val restTemplate = RestTemplate()
+
+    val baseUrl = "http://localhost:8081/logs"
+    val uri = URI(baseUrl)
+
     fun generateStudent() {
 
         // Заглушка
         val emptyRange: IntRange = 1..0
 
         // Заполняем мапу вида: ид угсн-set ид егэ
+        val start0 = "Получение из БД списка допустимых предметов ЕГЭ для каждого УГСН"
+        restTemplate.postForEntity(uri, ModellerLog(start0), String::class.java)
         fillMapEGE()
 
         // Рубильник - количество регионов на котором генерим студентов
@@ -31,7 +45,9 @@ class Generator {
 
         // Обходим каждый регион распределения
         for (distrib in distribList) {
-            println("Обработка региона: ${distrib.region}")
+            val start = "Обработка региона: ${distrib.region}"
+            println(start)
+            restTemplate.postForEntity(uri, ModellerLog(start), String::class.java)
 
             var insertedStudentIdList: MutableList<Long> = mutableListOf()
 
@@ -42,100 +58,128 @@ class Generator {
             val currentRegion = distrib.region
 
             val countVYP = distrib.countVYP
-            println("Число выпускников: $countVYP")
+            val start1 = "Число выпускников: $countVYP"
+            println(start1)
+            restTemplate.postForEntity(uri, ModellerLog(start1), String::class.java)
+
 
             val count100Ball = distrib.count100Ball
             val countParticipant = distrib.countParticipant
 
             val countFail = countVYP * DistribScore.FAIL.procent
-            val countMiddle = (countVYP * DistribScore.MIDDLE.procent).toInt()
-            val countSenior = (countVYP * DistribScore.SENIOR.procent).toInt()
-            val countGenius = (countVYP * DistribScore.GENIUS.procent).toInt()
+            val countMiddle = (countVYP * DistribScore.MIDDLE.procent / 100)
+            val countSenior = (countVYP * DistribScore.SENIOR.procent / 100)
+            val countGenius = (countVYP * DistribScore.GENIUS.procent / 100)
 
             // Создаем студентов в каждом регионе по числу выпускников
             var count = 1
             var isChange: Boolean
-            println("Создание студентов группы middle")
+            val start2 = "Создание студентов группы middle"
+            println(start2)
+            restTemplate.postForEntity(uri, ModellerLog(start2), String::class.java)
+
+            // Число абитуриентов, которые готовы переехать
+            val countMiddleChange = countMiddle * procentMiddleChange / 100
+
             for (i in 1..countMiddle) {
-                if (count == 5) {
-                    count = 1
-                    isChange = false
-                } else isChange = count != 4
+                isChange = countMiddleChange >= count
 
                 val studentData = StudentData().apply {
                     region = currentRegion
-
-                    // 60% готовы к пеерезду
                     change = isChange
                 }
 
                 count++
-
                 studentList.add(studentData)
             }
 
-            println("Создание студентов группы senior")
+            val start3 = "Создание студентов группы senior"
+            println(start3)
+            restTemplate.postForEntity(uri, ModellerLog(start3), String::class.java)
+
             count = 1
+            // Число абитуриентов, которые готовы переехать
+            val countSeniorChange = countSenior * procentSeniorChange / 100
+
             for (j in 1..countSenior) {
-                if (count == 5) {
-                    count = 1
-                    isChange = false
-                } else
-                    isChange = true
+                isChange = countSeniorChange >= count
 
                 val studentData = StudentData().apply {
                     region = currentRegion
-
-                    // 80% готовы к пеерезду
                     change = isChange
                 }
 
                 count++
-
                 studentList.add(studentData)
             }
 
-            println("Создание студентов группы genius")
+            val start4 = "Создание студентов группы genius"
+            println(start4)
+            restTemplate.postForEntity(uri, ModellerLog(start4), String::class.java)
+
+            count = 1
+            // Число абитуриентов, которые готовы переехать
+            val countGeniusChange = countGenius * procentGeniusChange / 100
+
             for (k in 1..countGenius) {
+                isChange = countGeniusChange >= count
+
                 val studentData = StudentData().apply {
                     region = currentRegion
-
-                    // Каждый супер студент готов к пеерезду
-                    change = true
+                    change = isChange
                 }
+
+                count++
                 studentList.add(studentData)
             }
 
-            println("Сохранение студентов в БД. Количество студентов ${studentList.size}")
+            val start5 = "Сохранение студентов в БД. Количество студентов ${studentList.size}"
+            println(start5)
+            restTemplate.postForEntity(uri, ModellerLog(start5), String::class.java)
             insertedStudentIdList = executor.batchInsertStudent(studentList)
 
             var currentIndex = 0
 
-            println("Создание сданных ЕГЭ и интересующих УГСН для студентов группы middle")
+            val start6 = "Создание сданных ЕГЭ и интересующих УГСН для студентов группы middle"
+            println(start6)
+            restTemplate.postForEntity(uri, ModellerLog(start6), String::class.java)
+
             for (i in 1..countMiddle) {
                 val currentStudentId = insertedStudentIdList[currentIndex]
                 createFullInformation(currentStudentId.toInt(), emptyRange, egeList, ygsnList)
                 currentIndex++
             }
 
-            println("Создание сданных ЕГЭ и интересующих УГСН для студентов группы senior")
+            val start7 = "Создание сданных ЕГЭ и интересующих УГСН для студентов группы senior"
+            println(start7)
+            restTemplate.postForEntity(uri, ModellerLog(start7), String::class.java)
+
             for (j in 1..countSenior) {
                 val currentStudentId = insertedStudentIdList[currentIndex]
                 createFullInformation(currentStudentId.toInt(), seniorRange, egeList, ygsnList)
                 currentIndex++
             }
 
-            println("Создание сданных ЕГЭ и интересующих УГСН для студентов группы genius")
+            val start8 = "Создание сданных ЕГЭ и интересующих УГСН для студентов группы genius"
+            println(start8)
+            restTemplate.postForEntity(uri, ModellerLog(start8), String::class.java)
+
             for (k in 1..countGenius) {
                 val currentStudentId = insertedStudentIdList[currentIndex]
                 createFullInformation(currentStudentId.toInt(), geniusRange, egeList, ygsnList)
                 currentIndex++
             }
 
-            println("Сохранение сданных ЕГЭ в БД. Количество записей ${egeList.size}")
+            val start9 = "Сохранение сданных ЕГЭ в БД. Количество записей ${egeList.size}"
+            println(start9)
+            restTemplate.postForEntity(uri, ModellerLog(start9), String::class.java)
+
             executor.batchInsertEGE(egeList)
 
-            println("Сохранение интересующих УГСН в БД. Количество записей ${ygsnList.size}")
+            val start10 = "Сохранение интересующих УГСН в БД. Количество записей ${ygsnList.size}"
+            println(start10)
+            restTemplate.postForEntity(uri, ModellerLog(start10), String::class.java)
+
             executor.batchInsertYGSN(ygsnList)
 
             countRegion--

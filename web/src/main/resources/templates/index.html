@@ -58,33 +58,6 @@
 
 <body>
 
-
-
-    <!--======================================== 
-
-           Preloader
-
-    ========================================-->
-
-    <div class="page-preloader">
-
-        <div class="spinner">
-
-            <div class="rect1"></div>
-
-            <div class="rect2"></div>
-
-            <div class="rect3"></div>
-
-            <div class="rect4"></div>
-
-            <div class="rect5"></div>
-
-        </div>
-
-    </div>
-
-
     <!--//** Banner**//-->
 
     <section id="home">
@@ -95,94 +68,105 @@
 
                 <!-- Introduction -->
 
-                <div class="col-md-6 caption">
+                <div class="col-md-8 caption col-md-offset-1">
 
                     <h1>Моделирование процесса приёма абитуриентов</h1>
 
-                    <form class="signup-form">
-
-                        <h2 class="text-center">Signup Now</h2>
-
-                        <hr>
-
-                        <div class="form-group">
-
-                            <input type="text" class="form-control" placeholder="Full Name" required="required">
-
-                        </div>
-
-                        <div class="form-group">
-
-                            <input type="email" class="form-control" placeholder="Email Address" required="required">
-
-                        </div>
-
-                        <div class="form-group">
-
-                            <input type="text" class="form-control" placeholder="User Name" required="required">
-
-                        </div>
-
-                        <div class="form-group">
-
-                            <input type="text" class="form-control" placeholder="Password" required="required">
-
-                        </div>
-
-                        <div class="form-group text-center">
-
-                            <button type="submit" class="btn btn-blue btn-block">Start Now</button>
-
-                        </div>
-
-                    </form>
                 </div>
 
-                <!-- Sign Up -->
 
-                <div class="col-md-5 col-md-offset-1">
+                <div class="col-sm-4 col-md-6">
 
-                    <form class="signup-form">
+                    <form class="signup-form" id="generate-form">
 
-                        <h2 class="text-center">Signup Now</h2>
+                        <h2 class="text-center">Генерация агентов</h2>
 
                         <hr>
 
                         <div class="form-group">
 
-                            <input type="text" class="form-control" placeholder="Full Name" required="required">
+                            <h5 class="text-center">Процентные категории агентов</h5>
+
+                            <input type="text" name="fail_student" class="form-control" placeholder="Процент не сдавших абитуриентов">
+                            <h5 class="text-center"></h5>
+
+                            <input type="text" name="fail_student" class="form-control" placeholder="Процент получивших средний результат">
+                            <h5 class="text-center"></h5>
+
+                            <input type="text" name="fail_student" class="form-control" placeholder="Процент получивших хороший результат">
+                            <h5 class="text-center"></h5>
+
+                            <input type="text" name="fail_student" class="form-control" placeholder="Процент получивших отличный результат">
+
+                            <h5 class="text-center">Диапазон баллов категорий</h5>
+
+                            <input type="text" class="form-control" placeholder="Диапазон баллов получивших средний результат">
+                            <h5 class="text-center"></h5>
+
+                            <input type="text" class="form-control" placeholder="Диапазон баллов получивших хороший результат">
+                            <h5 class="text-center"></h5>
+
+                            <input type="text" class="form-control" placeholder="Диапазон баллов получивших отличный результат">
+
+                            <h5 class="text-center">Минимальные баллы по каждому предмету ЕГЭ</h5>
+
+                            <input type="text" class="form-control" placeholder="Русский язык">
+                            <input type="text" class="form-control" placeholder="Математика">
+                            <input type="text" class="form-control" placeholder="Физика">
+                            <input type="text" class="form-control" placeholder="Химия">
+                            <input type="text" class="form-control" placeholder="Биология">
+                            <input type="text" class="form-control" placeholder="Обществознание">
+                            <input type="text" class="form-control" placeholder="Информатика и ИКТ">
+                            <input type="text" class="form-control" placeholder="История">
+                            <input type="text" class="form-control" placeholder="География">
+                            <input type="text" class="form-control" placeholder="Иностранный язык">
+                            <input type="text" class="form-control" placeholder="Литература">
 
                         </div>
 
-                        <div class="form-group">
 
-                            <input type="email" class="form-control" placeholder="Email Address" required="required">
+                        <div class="form-group text-center">
 
-                        </div>
-
-                        <div class="form-group">
-
-                            <input type="text" class="form-control" placeholder="User Name" required="required">
+                            <button type="submit" id="btn-generate" class="btn btn-blue btn-block">Начать генерацию</button>
 
                         </div>
 
+                    </form>
+
+                </div>
+
+                <div class="col-sm-4 col-md-6">
+
+                    <form class="signup-form" id="search-form">
+
+                        <h2 class="text-center">Параметры моделирования</h2>
+
+                        <hr>
+
                         <div class="form-group">
 
-                            <input type="text" class="form-control" placeholder="Password" required="required">
+                            <h5 class="text-center">Длительность этапа перераспределения заявлений с копией аттестата</h5>
+                            <input type="text" class="form-control" placeholder="Длительность этапа">
+                            <h5 class="text-center"></h5>
+
+                            <h5 class="text-center">Длительность этапа поиска наилучшего места для оригинала аттестата</h5>
+                            <input type="text" class="form-control" placeholder="Длительность этапа">
+                            <h5 class="text-center"></h5>
+
+                            <input type="text" class="form-control" placeholder="Год проведения моделирования">
+                            <h5 class="text-center"></h5>
+                            <input type="text" class="form-control" placeholder="Количество абитуриентов">
+                            <h5 class="text-center"></h5>
 
                         </div>
 
                         <div class="form-group text-center">
 
-                            <button type="submit" class="btn btn-blue btn-block">Start Now</button>
+                            <button type="submit" id="btn-search" class="btn btn-blue btn-block">Начать моделирование</button>
 
                         </div>
 
-                        <div id="feedback"></div>
-
                     </form>
-
-
 
                 </div>
 
@@ -192,21 +176,28 @@
 
     </section>
 
-    <textarea id="one" rows="20" cols="203"></textarea>
+    <style>
+        div.justified {
+            display: flex;
+            justify-content: center;
+        }
+    </style>
 
-    <form class="form-horizontal" id="search-form">
-        <button type="submit" id="bth-search"
-                class="btn btn-primary btn-lg">Начать моделирование
-        </button>
-    </form>
+    <div class="justified">
+        <textarea id="one" rows="20" cols="203"></textarea>
+    </div>
+
+<!--    <form class="form-horizontal" id="generate-form">-->
+<!--        <button type="submit" id="bth-generate"-->
+<!--                class="btn btn-primary btn-lg">Начать генерацию агентов-->
+<!--        </button>-->
+<!--    </form>-->
 
     <!--======================================== 
 
            Footer
 
     ========================================-->
-
-
 
     <footer>
 
@@ -218,19 +209,7 @@
 
                     <hr>
 
-                    <h5 class="pull-left">Vortex, &copy;2016 All rights reserved</h5>
-
-                    <ul class="liste-unstyled pull-right">
-
-                        <li><a href="#facebook"><i class="fa fa-facebook"></i></a></li>
-
-                        <li><a href="#twitter"><i class="fa fa-twitter"></i></a></li>
-
-                        <li><a href="#linkedin"><i class="fa fa-linkedin"></i></a></li>
-
-                        <li><a href="#instagram"><i class="fa fa-instagram"></i></a></li>
-
-                    </ul>
+                    <h5 class="pull-left">Московский Государственный Технический Университет им. Н.Э. Баумана, &copy;2022 Все права защищены</h5>
 
                 </div>
 
@@ -240,71 +219,6 @@
 
     </footer>
 
-
-
-    <!--======================================== 
-
-           Modal
-
-    ========================================-->
-
-
-
-    <!-- Modal -->
-
-    <div class="modal fade" id="SignIn" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
-
-        <div class="modal-dialog" role="document">
-
-            <div class="modal-content">
-
-                <div class="modal-header">
-
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-
-                    <h4 class="modal-title text-center" id="myModalLabel">Sign In</h4>
-
-                </div>
-
-                <div class="modal-body">
-
-                    <form class="signup-form">
-
-                        <div class="form-group">
-
-                            <input type="text" class="form-control" placeholder="User Name" required="required">
-
-                        </div>
-
-                        <div class="form-group">
-
-                            <input type="text" class="form-control" placeholder="Password" required="required">
-
-                        </div>
-
-                        <div class="form-group text-center">
-
-                            <button type="submit" class="btn btn-blue btn-block">Log In</button>
-
-                        </div>
-
-                    </form>
-
-                </div>
-
-                <div class="modal-footer text-center">
-
-                    <a href="#">Forgot your password /</a>
-
-                    <a href="#">Signup</a>
-
-                </div>
-
-            </div>
-
-        </div>
-
-    </div>
 
     <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
 

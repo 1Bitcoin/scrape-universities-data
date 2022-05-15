@@ -72,4 +72,12 @@ public class Controller {
 
         return ResponseEntity.ok(result);
     }
+
+    @PostMapping(value = "/generating")
+    public ResponseEntity<AjaxResponseBody> startGenerateStudent() {
+        AjaxResponseBody result = new AjaxResponseBody();
+        service.startGenerateStudent();
+
+        return ResponseEntity.ok(result);
+    }
 }

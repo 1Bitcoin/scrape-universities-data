@@ -5,13 +5,22 @@ $(document).ready(function () {
         //stop submit the form, we will post it manually.
         event.preventDefault();
 
-        fire_ajax_submit();
+        ajax_submit_modelling();
+
+    });
+
+    $("#generate-form").submit(function (event) {
+
+        //stop submit the form, we will post it manually.
+        event.preventDefault();
+
+        ajax_submit_generate();
 
     });
 
 });
 
-function fire_ajax_submit() {
+function ajax_submit_modelling() {
 
     var search = {}
     search["username"] = 'test';
@@ -46,6 +55,25 @@ function fire_ajax_submit() {
             $("#btn-search").prop("disabled", false);
 
         }
+    });
+
+}
+
+function ajax_submit_generate() {
+
+    var search = {}
+    search["username"] = 'test';
+
+    $("#btn-generate").prop("disabled", true);
+
+    $.ajax({
+        type: "POST",
+        contentType: "application/json",
+        url: "/generating",
+        data: JSON.stringify(search),
+        dataType: 'json',
+        cache: false,
+        timeout: 600000
     });
 
 }
