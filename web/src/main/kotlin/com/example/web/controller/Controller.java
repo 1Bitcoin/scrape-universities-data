@@ -68,7 +68,7 @@ public class Controller {
     @PostMapping(value = "/modelling")
     public ResponseEntity<AjaxResponseBody> startModelling() {
         AjaxResponseBody result = new AjaxResponseBody();
-        service.startModelling();
+        service.startModelling(0);
 
         return ResponseEntity.ok(result);
     }
@@ -76,7 +76,7 @@ public class Controller {
     @PostMapping(value = "/generating")
     public ResponseEntity<AjaxResponseBody> startGenerateStudent() {
         AjaxResponseBody result = new AjaxResponseBody();
-        service.startGenerateStudent();
+        service.startGenerateStudent(0);
 
         return ResponseEntity.ok(result);
     }

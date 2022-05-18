@@ -11,7 +11,7 @@ import java.io.File
 import java.net.URI
 
 
-fun main(command: String) {
+fun main(command: String, logToggle: Int) {
     Database.connect(
         "jdbc:postgresql://localhost:5432/postgres",
         driver = "org.postgresql.Driver", user = "postgres", password = "qwerty"
@@ -21,7 +21,7 @@ fun main(command: String) {
     val dataAboutUniversityYGSN = setUniversityYGSNDataSource()
 
     when (command) {
-        "modelling" -> startModeling(10, 2019)
+        "modelling" -> startModeling(700000, 2019, logToggle)
         "generating" -> generateStudents()
     }
 
@@ -37,11 +37,19 @@ fun main(command: String) {
 }
 
 fun generateStudents() {
+    val restTemplate = RestTemplate()
+
+    val baseUrl = "http://localhost:8080/logs"
+    val uri = URI(baseUrl)
+
     val generator = Generator()
     generator.generateStudent()
+
+    val generateMessage = "Генерация агентов окончена"
+    restTemplate.postForEntity(uri, ModellerLog(generateMessage), String::class.java)
 }
 
-fun startModeling(limitStudents: Int, modelingYear: Int) {
+fun startModeling(limitStudents: Int, modelingYear: Int, logToggle: Int) {
     val restTemplate = RestTemplate()
 
     val baseUrl = "http://localhost:8080/logs"
@@ -50,9 +58,11 @@ fun startModeling(limitStudents: Int, modelingYear: Int) {
     val bufferedWriter = File("D:\\logs.txt").bufferedWriter()
 
     val startMessage = "Получение информации о студентах и университетах"
-    restTemplate.postForEntity(uri, ModellerLog(startMessage), String::class.java)
 
-    val modeller = Modeller(limitStudent = limitStudents, modelingYear, bufferedWriter)
+    if (logToggle != 0)
+        restTemplate.postForEntity(uri, ModellerLog(startMessage), String::class.java)
+
+    val modeller = Modeller(limitStudent = limitStudents, modelingYear, bufferedWriter, logToggle)
 
     modeller.modeling()
 

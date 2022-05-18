@@ -11,7 +11,7 @@ import java.io.BufferedWriter
 import java.net.URI
 import kotlin.math.round
 
-class Analyzer(year: Int) {
+class Analyzer(year: Int, val logToggle: Int) {
     val restTemplate = RestTemplate()
     val baseUrl = "http://localhost:8080/logs"
     val uri = URI(baseUrl)
@@ -109,6 +109,11 @@ class Analyzer(year: Int) {
             statisticsCountStudent += countStudents
         }
 
+        var averageScoreOfRussia = 0.0
+        var averagePrevScoreOfRussia = 0.0
+        var countModellingUniversities = 0
+        var topUniversity = 50
+
         for (resultUniversity in totalResultModelling) {
             val universityId = resultUniversity.universityId
 
@@ -127,14 +132,29 @@ class Analyzer(year: Int) {
                         "| Максимальный балл ${resultUniversity.maxScore} " +
                         "| Кол-во поступивших: $countStudents\n"
 
-                println(messageUniversity)
-                writer.write(messageUniversity)
-                restTemplate.postForEntity(uri, ModellerLog(messageUniversity), String::class.java)
+                averageScoreOfRussia += resultUniversity.averageAllBudgetScoreUniversity
+                averagePrevScoreOfRussia += prevAverageAllStudentsEGEUniversity
+                countModellingUniversities += 1
+
+                if (topUniversity != 0) {
+                    println(messageUniversity)
+                    restTemplate.postForEntity(uri, ModellerLog(messageUniversity), String::class.java)
+                    topUniversity--
+                }
+
+                if (logToggle != 0) {
+                    println(messageUniversity)
+                    writer.write(messageUniversity)
+                    restTemplate.postForEntity(uri, ModellerLog(messageUniversity), String::class.java)
+                }
 
                 val messageResultYGSN = "Результаты по УГСН:\n"
-                println(messageResultYGSN)
-                writer.write(messageResultYGSN)
-                restTemplate.postForEntity(uri, ModellerLog(messageResultYGSN), String::class.java)
+
+                if (logToggle != 0) {
+                    println(messageResultYGSN)
+                    writer.write(messageResultYGSN)
+                    restTemplate.postForEntity(uri, ModellerLog(messageResultYGSN), String::class.java)
+                }
 
                 for (resultYGSN in resultUniversity.resultYGSNList) {
                     val ygsnId = resultYGSN.ygsnId
@@ -148,16 +168,38 @@ class Analyzer(year: Int) {
                             "| Максимальный балл: ${resultYGSN.maxScore} " +
                             "| Кол-во поступивших: ${resultYGSN.countStudents}\n"
 
-                    println(messageYGSN)
-                    writer.write(messageYGSN)
-                    restTemplate.postForEntity(uri, ModellerLog(messageYGSN), String::class.java)
 
+                    if (topUniversity != 0) {
+                        println(messageYGSN)
+                        restTemplate.postForEntity(uri, ModellerLog(messageYGSN), String::class.java)
+                    }
 
+                    if (logToggle != 0) {
+                        println(messageYGSN)
+                        writer.write(messageYGSN)
+                        restTemplate.postForEntity(uri, ModellerLog(messageYGSN), String::class.java)
+                    }
                 }
                 println()
                 restTemplate.postForEntity(uri, ModellerLog(""), String::class.java)
             }
         }
-        println("Итого зачислено $statisticsCountStudent студентов")
+        averageScoreOfRussia /= countModellingUniversities
+        averagePrevScoreOfRussia /= countModellingUniversities
+
+        println("Число университетов в моделировании $countModellingUniversities")
+
+        val statStudent = "Итого зачислено $statisticsCountStudent студентов"
+        println(statStudent)
+        restTemplate.postForEntity(uri, ModellerLog(statStudent), String::class.java)
+
+        val modellingScore = "Спрогнозированный средний балл по России $averageScoreOfRussia"
+        println(modellingScore)
+        restTemplate.postForEntity(uri, ModellerLog(modellingScore), String::class.java)
+
+
+        val realScore = "Реальный средний балл по России $averagePrevScoreOfRussia"
+        println(realScore)
+        restTemplate.postForEntity(uri, ModellerLog(realScore), String::class.java)
     }
 }

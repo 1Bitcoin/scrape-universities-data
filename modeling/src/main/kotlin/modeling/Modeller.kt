@@ -8,7 +8,7 @@ import java.net.URI
 import java.util.concurrent.CopyOnWriteArrayList
 
 
-class Modeller(limitStudent: Int = 100000, year: Int, bufferedWriter: BufferedWriter) {
+class Modeller(limitStudent: Int = 100000, year: Int, bufferedWriter: BufferedWriter, val logToggle: Int) {
 
     val restTemplate = RestTemplate()
 
@@ -20,7 +20,7 @@ class Modeller(limitStudent: Int = 100000, year: Int, bufferedWriter: BufferedWr
     val helper = ModelingHelper(limitStudent, year)
 
     // Анализ производится по сравнению со стат.данными ВУЗов и их УГСН следующего года
-    val analyzer = Analyzer(year + 1);
+    val analyzer = Analyzer(year + 1, logToggle);
 
     val students = helper.informationStudent
     val universities = helper.informationUniversityMap
@@ -69,9 +69,11 @@ class Modeller(limitStudent: Int = 100000, year: Int, bufferedWriter: BufferedWr
     private fun firstStep() {
         val messageFirstStep = "||| Начало первого этапа моделирования |||\n"
 
-        println(messageFirstStep)
-        restTemplate.postForEntity(uri, ModellerLog(messageFirstStep), String::class.java)
-        //writer.write(messageFirstStep)
+        if (logToggle != 0) {
+            println(messageFirstStep)
+            restTemplate.postForEntity(uri, ModellerLog(messageFirstStep), String::class.java)
+            //writer.write(messageFirstStep)
+        }
 
         val currentDate = "$currentDay/$currentMouth/$currentYear $currentHour:$currentMinutes:00"
 
@@ -128,21 +130,24 @@ class Modeller(limitStudent: Int = 100000, year: Int, bufferedWriter: BufferedWr
                                         "| средний балл по УГСН: ${informationYGSN.ygsnData.averageScoreBudgetEGE} " +
                                         "| средний балл студента: $averageScoreStudent\n"
 
-                                println(messageSubmitFirstStep)
-                                restTemplate.postForEntity(uri, ModellerLog(messageSubmitFirstStep), String::class.java)
+                                if (logToggle != 0) {
+                                    println(messageSubmitFirstStep)
+                                    restTemplate.postForEntity(uri, ModellerLog(messageSubmitFirstStep), String::class.java)
 
-                                //writer.write(messageSubmitFirstStep)
-
+                                    //writer.write(messageSubmitFirstStep)
+                                }
                             }
                         }
                     }
                 } else {
                     val messageMaxUniversities = "Абитуриент $studentId может подать заявление максимум в 5 универов!\n"
 
-                    println(messageMaxUniversities)
-                    restTemplate.postForEntity(uri, ModellerLog(messageMaxUniversities), String::class.java)
+                    if (logToggle != 0) {
+                        println(messageMaxUniversities)
+                        restTemplate.postForEntity(uri, ModellerLog(messageMaxUniversities), String::class.java)
 
-                    //writer.write(messageMaxUniversities)
+                        //writer.write(messageMaxUniversities)
+                    }
 
                     break
                 }
@@ -151,10 +156,13 @@ class Modeller(limitStudent: Int = 100000, year: Int, bufferedWriter: BufferedWr
             if (student.getCountUniversities() == 0) {
                 val messageZeroSubmit = "Абитуриент $studentId не смог подать копию ни в один университет!\n"
 
-                println(messageZeroSubmit)
-                restTemplate.postForEntity(uri, ModellerLog(messageZeroSubmit), String::class.java)
+                if (logToggle != 0) {
 
-                //writer.write(messageZeroSubmit)
+                    println(messageZeroSubmit)
+                    restTemplate.postForEntity(uri, ModellerLog(messageZeroSubmit), String::class.java)
+
+                    //writer.write(messageZeroSubmit)
+                }
             }
         }
 
@@ -167,13 +175,15 @@ class Modeller(limitStudent: Int = 100000, year: Int, bufferedWriter: BufferedWr
      * то забирает копию своего заявления и кладет в другой универ, где есть места на интересующем его УГСН.
      * Так продолжается до дня X - когда надо положить оригинал и произойдет зачисление
      */
-    private fun secondStep(countDays: Int = 10) {
+    private fun secondStep(countDays: Int = 5) {
         val messageSecondStep = "||| Начало второго этапа моделирования |||\n"
 
-        println(messageSecondStep)
-        restTemplate.postForEntity(uri, ModellerLog(messageSecondStep), String::class.java)
+        if (logToggle != 0) {
+            println(messageSecondStep)
+            restTemplate.postForEntity(uri, ModellerLog(messageSecondStep), String::class.java)
 
-        //writer.write(messageSecondStep)
+            //writer.write(messageSecondStep)
+        }
 
         val students = helper.informationStudent
 
@@ -246,10 +256,12 @@ class Modeller(limitStudent: Int = 100000, year: Int, bufferedWriter: BufferedWr
                                     val messageOutOfNumbers = "Абитуриент $studentId вышел за пределы бюджетных мест в университете " +
                                             "$universityId на УГСН $ygsnId. Заявление перекладывается в другой ВУЗ.\n"
 
-                                    println(messageOutOfNumbers)
-                                    restTemplate.postForEntity(uri, ModellerLog(messageOutOfNumbers), String::class.java)
+                                    if (logToggle != 0) {
+                                        println(messageOutOfNumbers)
+                                        restTemplate.postForEntity(uri, ModellerLog(messageOutOfNumbers), String::class.java)
 
-                                    //writer.write(messageOutOfNumbers)
+                                        //writer.write(messageOutOfNumbers)
+                                    }
 
                                     // Ищем подходящий универ, в который еще не подавали и нужный УГСН в нем
                                     searchUniversities(listIterator, student, mutableListOf(ygsnId), currentDate)
@@ -270,10 +282,12 @@ class Modeller(limitStudent: Int = 100000, year: Int, bufferedWriter: BufferedWr
                                 val messageOutOfNumbers1 = "Абитуриент $studentId вышел за пределы бюджетных мест в университете " +
                                         "$universityId на УГСН $ygsnId. Заявление необходимо положить в еще один ВУЗ.\n"
 
-                                println(messageOutOfNumbers1)
-                                restTemplate.postForEntity(uri, ModellerLog(messageOutOfNumbers1), String::class.java)
+                                if (logToggle != 0) {
+                                    println(messageOutOfNumbers1)
+                                    restTemplate.postForEntity(uri, ModellerLog(messageOutOfNumbers1), String::class.java)
 
-                                //writer.write(messageOutOfNumbers1)
+                                    //writer.write(messageOutOfNumbers1)
+                                }
 
                                 // Ищем подходящий универ, в который еще не подавали и нужный УГСН в нем
                                 searchUniversities(listIterator, student, mutableListOf(ygsnId), currentDate)
@@ -283,10 +297,12 @@ class Modeller(limitStudent: Int = 100000, year: Int, bufferedWriter: BufferedWr
                             val messageNumbersOk = "Абитуриент $studentId находится в пределе бюджетных мест в университете " +
                                     "$universityId на УГСН $ygsnId. Заявление не трогаем.\n"
 
-                            println(messageNumbersOk)
-                            restTemplate.postForEntity(uri, ModellerLog(messageNumbersOk), String::class.java)
+                            if (logToggle != 0) {
+                                println(messageNumbersOk)
+                                restTemplate.postForEntity(uri, ModellerLog(messageNumbersOk), String::class.java)
 
-                            //writer.write(messageNumbersOk)
+                                //writer.write(messageNumbersOk)
+                            }
                         }
                     }
 
@@ -320,10 +336,12 @@ class Modeller(limitStudent: Int = 100000, year: Int, bufferedWriter: BufferedWr
                                     "$universityId. Прошлые заявления на УГСН $ygsnFailList в данном ВУЗе были отозваны. " +
                                     "Заявления перекладываются в другой подходящий ВУЗ.\n"
 
-                            println(messageRevokeOldRequest)
-                            restTemplate.postForEntity(uri, ModellerLog(messageRevokeOldRequest), String::class.java)
+                            if (logToggle != 0) {
+                                println(messageRevokeOldRequest)
+                                restTemplate.postForEntity(uri, ModellerLog(messageRevokeOldRequest), String::class.java)
 
-                            //writer.write(messageRevokeOldRequest)
+                                //writer.write(messageRevokeOldRequest)
+                            }
 
                             // Ищем подходящий универ, в который еще не подавали и нужный УГСН в нем
                             searchUniversities(listIterator, student, ygsnFailList, currentDate)
@@ -332,10 +350,12 @@ class Modeller(limitStudent: Int = 100000, year: Int, bufferedWriter: BufferedWr
                             val messageOk = "Абитуриент $studentId вышел за пределы бюджетных мест в университете " +
                                     "$universityId по некоторым УГСН. Заявления не трогаем.\n"
 
-                            println(messageOk)
-                            restTemplate.postForEntity(uri, ModellerLog(messageOk), String::class.java)
+                            if (logToggle != 0) {
+                                println(messageOk)
+                                restTemplate.postForEntity(uri, ModellerLog(messageOk), String::class.java)
 
-                            //writer.write(messageOk)
+                                //writer.write(messageOk)
+                            }
                         }
                     }
                 }
@@ -457,10 +477,12 @@ class Modeller(limitStudent: Int = 100000, year: Int, bufferedWriter: BufferedWr
                             "| место в рейтинге ${item.studentPosition} " +
                             "| бюджетных мест ${item.countBudget}.\n"
 
-                    println(messageNewRequest)
-                    restTemplate.postForEntity(uri, ModellerLog(messageNewRequest), String::class.java)
+                    if (logToggle != 0) {
+                        println(messageNewRequest)
+                        restTemplate.postForEntity(uri, ModellerLog(messageNewRequest), String::class.java)
 
-                    //writer.write(messageNewRequest)
+                        //writer.write(messageNewRequest)
+                    }
                 }
 
                 // Необходимо удалить из массива УГСН ид те ид, на которые подали заявление
@@ -471,10 +493,12 @@ class Modeller(limitStudent: Int = 100000, year: Int, bufferedWriter: BufferedWr
         if (ygsnList.isNotEmpty()) {
             val messageNotFound = "Абитуриент $studentId НЕ НАШЕЛ КУДА переподать копии на следующие УГСН: $ygsnList.\n"
 
-            println(messageNotFound)
-            restTemplate.postForEntity(uri, ModellerLog(messageNotFound), String::class.java)
+            if (logToggle != 0) {
+                println(messageNotFound)
+                restTemplate.postForEntity(uri, ModellerLog(messageNotFound), String::class.java)
 
-            //writer.write(messageNotFound)
+                //writer.write(messageNotFound)
+            }
         }
     }
 
@@ -482,10 +506,12 @@ class Modeller(limitStudent: Int = 100000, year: Int, bufferedWriter: BufferedWr
     private fun thirdStep(countIterations: Int = 2) {
         val messageThirdStep = "||| Начало третьего этапа моделирования |||\n"
 
-        println(messageThirdStep)
-        restTemplate.postForEntity(uri, ModellerLog(messageThirdStep), String::class.java)
+        if (logToggle != 0) {
+            println(messageThirdStep)
+            restTemplate.postForEntity(uri, ModellerLog(messageThirdStep), String::class.java)
 
-        //writer.write(messageThirdStep)
+            //writer.write(messageThirdStep)
+        }
 
         val students = helper.informationStudent
 
@@ -504,10 +530,12 @@ class Modeller(limitStudent: Int = 100000, year: Int, bufferedWriter: BufferedWr
                 if (student.getCountUniversities() == 0) {
                     val messageZeroCopy = "Абитуриент $studentId не имеет копий заявлений ни в одном университете! (пропускается)\n"
 
-                    println(messageZeroCopy)
-                    restTemplate.postForEntity(uri, ModellerLog(messageZeroCopy), String::class.java)
+                    if (logToggle != 0) {
+                        println(messageZeroCopy)
+                        restTemplate.postForEntity(uri, ModellerLog(messageZeroCopy), String::class.java)
 
-                    //writer.write(messageZeroCopy)
+                        //writer.write(messageZeroCopy)
+                    }
 
                     continue
                 }
@@ -618,17 +646,21 @@ class Modeller(limitStudent: Int = 100000, year: Int, bufferedWriter: BufferedWr
 
                         val messageOk = "Абитуриент $studentId НЕ НАШЕЛ куда ЛУЧШЕ положить оригинал заявления(уже есть активный).\n"
 
-                        println(messageOk)
-                        restTemplate.postForEntity(uri, ModellerLog(messageOk), String::class.java)
+                        if (logToggle != 0) {
+                            println(messageOk)
+                            restTemplate.postForEntity(uri, ModellerLog(messageOk), String::class.java)
 
-                        //writer.write(messageOk)
+                            //writer.write(messageOk)
+                        }
                     } else {
                         val messageNotOk = "Абитуриент $studentId ВООБЩЕ НЕ НАШЕЛ куда положить оригинал заявления(активных нет).\n"
 
-                        println(messageNotOk)
-                        restTemplate.postForEntity(uri, ModellerLog(messageNotOk), String::class.java)
+                        if (logToggle != 0) {
+                            println(messageNotOk)
+                            restTemplate.postForEntity(uri, ModellerLog(messageNotOk), String::class.java)
 
-                        //writer.write(messageNotOk)
+                            //writer.write(messageNotOk)
+                        }
                     }
                 } else {
                     val currentOriginalChoice = student.getCurrentOriginal()
@@ -650,10 +682,12 @@ class Modeller(limitStudent: Int = 100000, year: Int, bufferedWriter: BufferedWr
                                     "${originalUniversity.universityData.universityId} на УГСН " +
                                     "${currentOriginalChoice.choiceStudent.ygsnId}\n"
 
-                            println(message1)
-                            restTemplate.postForEntity(uri, ModellerLog(message1), String::class.java)
+                            if (logToggle != 0) {
+                                println(message1)
+                                restTemplate.postForEntity(uri, ModellerLog(message1), String::class.java)
 
-                            //writer.write(message1)
+                                //writer.write(message1)
+                            }
 
                             // И кладем новый оригинал
                             val university = universities[resultChoice.universityId]
@@ -667,10 +701,12 @@ class Modeller(limitStudent: Int = 100000, year: Int, bufferedWriter: BufferedWr
                             val message2 = "Абитуриент $studentId положил ОРИГИНАЛ заявления в более престижный университет " +
                                     "${university.universityData.universityId} на УГСН $resultYGSNId.\n"
 
-                            println(message2)
-                            restTemplate.postForEntity(uri, ModellerLog(message2), String::class.java)
+                            if (logToggle != 0) {
+                                println(message2)
+                                restTemplate.postForEntity(uri, ModellerLog(message2), String::class.java)
 
-                            //writer.write(message2)
+                                //writer.write(message2)
+                            }
 
                         } else {
 
@@ -678,10 +714,12 @@ class Modeller(limitStudent: Int = 100000, year: Int, bufferedWriter: BufferedWr
                             "${originalUniversity.universityData.universityId} на УГСН " +
                                     "${currentOriginalChoice.choiceStudent.ygsnId}\n"
 
-                            println(message3)
-                            restTemplate.postForEntity(uri, ModellerLog(message3), String::class.java)
+                            if (logToggle != 0) {
+                                println(message3)
+                                restTemplate.postForEntity(uri, ModellerLog(message3), String::class.java)
 
-                            //writer.write(message3)
+                                //writer.write(message3)
+                            }
                         }
                     } else {
                         // Если оригинал еще не подавался ни в один ВУЗ - то подаем
@@ -697,10 +735,12 @@ class Modeller(limitStudent: Int = 100000, year: Int, bufferedWriter: BufferedWr
                         val message4 = "Абитуриент $studentId первый раз положил ОРИГИНАЛ заявления в университет " +
                                 "${university.universityData.universityId} на УГСН $resultYGSNId.\n"
 
-                        println(message4)
-                        restTemplate.postForEntity(uri, ModellerLog(message4), String::class.java)
+                        if (logToggle != 0) {
+                            println(message4)
+                            restTemplate.postForEntity(uri, ModellerLog(message4), String::class.java)
 
-                        //writer.write(message4)
+                            //writer.write(message4)
+                        }
                     }
                 }
             }

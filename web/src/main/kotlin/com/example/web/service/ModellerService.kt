@@ -10,11 +10,11 @@ import java.io.FileWriter
 class ModellerService {
     final var FILE_PATH = "D:\\logs.txt"
 
-    fun startModelling() {
-        main("modelling")
+    fun startModelling(logToggle: Int) {
+        main("modelling", logToggle)
     }
 
-    fun startGenerateStudent() {
-        main("generating")
+    fun startGenerateStudent(logToggle: Int) {
+        main("generating", logToggle)
     }
 }
