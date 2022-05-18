@@ -21,7 +21,7 @@ fun main(command: String) {
     val dataAboutUniversityYGSN = setUniversityYGSNDataSource()
 
     when (command) {
-        "modelling" -> startModeling(100, 2020)
+        "modelling" -> startModeling(10, 2019)
         "generating" -> generateStudents()
     }
 

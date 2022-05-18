@@ -16,14 +16,13 @@ class Analyzer(year: Int) {
     val baseUrl = "http://localhost:8080/logs"
     val uri = URI(baseUrl)
 
+    var yearAnalyze = year
+
     val totalResultModelling = mutableListOf<UniversityTotalResult>()
 
     private var executor: MyQueryExecutor = MyQueryExecutor()
 
     var statisticsCountStudent = 0
-
-    // Анализ производится по сравнению со стат.данными следующего года
-    var informationUniversityMap: LinkedHashMap<Int, InformationUniversity> = executor.selectInformationUniversities(year)
 
     fun analyzeResults(universities: LinkedHashMap<Int, InformationUniversity>, writer: BufferedWriter) {
         for (university in universities.values) {
@@ -113,8 +112,8 @@ class Analyzer(year: Int) {
         for (resultUniversity in totalResultModelling) {
             val universityId = resultUniversity.universityId
 
-            val universityInformation = informationUniversityMap[universityId]
-            val universityName = universityInformation!!.universityData.name
+            val universityInformation = universities[universityId]!!
+            val universityName = universityInformation.universityData.name
             val countStudents = resultUniversity.countStudents
             val prevAverageAllStudentsEGEUniversity = universityInformation.universityData.averageAllStudentsEGE
 
