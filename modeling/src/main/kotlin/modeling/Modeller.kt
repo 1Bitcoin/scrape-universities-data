@@ -12,13 +12,15 @@ class Modeller(limitStudent: Int = 100000, year: Int, bufferedWriter: BufferedWr
 
     val restTemplate = RestTemplate()
 
-    val baseUrl = "http://localhost:8081/logs"
+    val baseUrl = "http://localhost:8080/logs"
     val uri = URI(baseUrl)
 
     val countStudents = limitStudent
 
     val helper = ModelingHelper(limitStudent, year)
-    val analyzer = Analyzer(year);
+
+    // Анализ производится по сравнению со стат.данными ВУЗов и их УГСН следующего года
+    val analyzer = Analyzer(year + 1);
 
     val students = helper.informationStudent
     val universities = helper.informationUniversityMap

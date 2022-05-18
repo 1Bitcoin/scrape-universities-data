@@ -5,20 +5,25 @@ import main.kotlin.modeling.dto.InformationUniversity
 import main.kotlin.modeling.dto.State
 import main.kotlin.modeling.dto.result.UniversityTotalResult
 import main.kotlin.modeling.dto.result.YGSNTotalResult
+import main.kotlin.ru.batch.executor.MyQueryExecutor
 import org.springframework.web.client.RestTemplate
 import java.io.BufferedWriter
 import java.net.URI
 import kotlin.math.round
 
 class Analyzer(year: Int) {
-
     val restTemplate = RestTemplate()
-    val baseUrl = "http://localhost:8081/logs"
+    val baseUrl = "http://localhost:8080/logs"
     val uri = URI(baseUrl)
 
     val totalResultModelling = mutableListOf<UniversityTotalResult>()
 
+    private var executor: MyQueryExecutor = MyQueryExecutor()
+
     var statisticsCountStudent = 0
+
+    // Анализ производится по сравнению со стат.данными следующего года
+    var informationUniversityMap: LinkedHashMap<Int, InformationUniversity> = executor.selectInformationUniversities(year)
 
     fun analyzeResults(universities: LinkedHashMap<Int, InformationUniversity>, writer: BufferedWriter) {
         for (university in universities.values) {
@@ -108,8 +113,8 @@ class Analyzer(year: Int) {
         for (resultUniversity in totalResultModelling) {
             val universityId = resultUniversity.universityId
 
-            val universityInformation = universities[universityId]!!
-            val universityName = universityInformation.universityData.name
+            val universityInformation = informationUniversityMap[universityId]
+            val universityName = universityInformation!!.universityData.name
             val countStudents = resultUniversity.countStudents
             val prevAverageAllStudentsEGEUniversity = universityInformation.universityData.averageAllStudentsEGE
 

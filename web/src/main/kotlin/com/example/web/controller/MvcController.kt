@@ -9,10 +9,6 @@ import org.springframework.web.bind.annotation.GetMapping
 @Controller
 class MvcController() {
 
-    @Value("\${spring.application.name}")
-    var appName: String? = null
-
-
     @GetMapping("/")
     fun homePage(model: Model): String {
         return "index"

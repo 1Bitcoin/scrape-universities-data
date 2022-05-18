@@ -27,7 +27,7 @@ class Generator {
 
     val restTemplate = RestTemplate()
 
-    val baseUrl = "http://localhost:8081/logs"
+    val baseUrl = "http://localhost:8080/logs"
     val uri = URI(baseUrl)
 
     fun generateStudent() {

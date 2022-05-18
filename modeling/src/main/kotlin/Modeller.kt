@@ -44,7 +44,7 @@ fun generateStudents() {
 fun startModeling(limitStudents: Int, modelingYear: Int) {
     val restTemplate = RestTemplate()
 
-    val baseUrl = "http://localhost:8081/logs"
+    val baseUrl = "http://localhost:8080/logs"
     val uri = URI(baseUrl)
 
     val bufferedWriter = File("D:\\logs.txt").bufferedWriter()

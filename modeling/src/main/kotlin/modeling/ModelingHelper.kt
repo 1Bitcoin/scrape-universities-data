@@ -11,7 +11,7 @@ import java.net.URI
 class ModelingHelper(limitStudent: Int, year: Int) {
 
     val restTemplate = RestTemplate()
-    val baseUrl = "http://localhost:8081/logs"
+    val baseUrl = "http://localhost:8080/logs"
     val uri = URI(baseUrl)
 
     // Ключ - ид ВУЗа, значение - инфа о ВУЗе

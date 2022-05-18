@@ -10,21 +10,24 @@
     </parent>
 
     <groupId>com.example</groupId>
-    <artifactId>web</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
-    <name>web</name>
+    <artifactId>control-module</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <name>POM сервиса управления взаимодействия с пользователем</name>
+    <packaging>jar</packaging>
 
     <description>web</description>
 
     <properties>
         <java.version>11</java.version>
         <kotlin.version>1.6.21</kotlin.version>
+        <start-class>com.example.web.WebApplication</start-class>
+
     </properties>
 
     <repositories>
         <repository>
             <id>mavenCentral</id>
-            <url>https://repo1.maven.org/maven2/</url>
+            <url>https://repo.maven.apache.org/maven2/</url>
         </repository>
 
         <repository>
@@ -34,10 +37,23 @@
         </repository>
     </repositories>
 
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-dependencies</artifactId>
+                <version>2.4.0</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
     <dependencies>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter</artifactId>
+            <version>2.6.7</version>
         </dependency>
         <dependency>
             <groupId>org.jetbrains.kotlin</groupId>
@@ -130,6 +146,13 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <configuration>
+                            <mainClass>com.example.web.WebApplication</mainClass>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
             <plugin>
                 <groupId>org.jetbrains.kotlin</groupId>
@@ -195,6 +218,10 @@
                         </goals>
                     </execution>
                 </executions>
+                <configuration>
+                    <source>8</source>
+                    <target>8</target>
+                </configuration>
             </plugin>
         </plugins>
     </build>
