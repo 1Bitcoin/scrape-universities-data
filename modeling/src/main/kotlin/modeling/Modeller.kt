@@ -1,5 +1,6 @@
 package main.kotlin.modeling
 
+import dto.contoller.Modelling
 import main.kotlin.dto.ModellerLog
 import main.kotlin.modeling.dto.*
 import org.springframework.web.client.RestTemplate
@@ -8,18 +9,18 @@ import java.net.URI
 import java.util.concurrent.CopyOnWriteArrayList
 
 
-class Modeller(limitStudent: Int = 100000, year: Int, bufferedWriter: BufferedWriter, val logToggle: Int) {
+class Modeller(var modellerDTO: Modelling, bufferedWriter: BufferedWriter, val logToggle: Int) {
 
     val restTemplate = RestTemplate()
 
     val baseUrl = "http://localhost:8080/logs"
     val uri = URI(baseUrl)
 
-    val countStudents = limitStudent
+    val countStudents = modellerDTO.countStudent
+    val year = modellerDTO.year
 
-    val helper = ModelingHelper(limitStudent, year)
+    val helper = ModelingHelper(countStudents, year)
 
-    // Анализ производится по сравнению со стат.данными ВУЗов и их УГСН следующего года
     val analyzer = Analyzer(year + 1, logToggle);
 
     val students = helper.informationStudent
@@ -39,8 +40,8 @@ class Modeller(limitStudent: Int = 100000, year: Int, bufferedWriter: BufferedWr
         val start = System.currentTimeMillis()
 
         firstStep()
-        secondStep()
-        thirdStep()
+        secondStep(modellerDTO.durationCopy)
+        thirdStep(modellerDTO.durationOriginal)
 
         val end = System.currentTimeMillis()
 
@@ -64,10 +65,19 @@ class Modeller(limitStudent: Int = 100000, year: Int, bufferedWriter: BufferedWr
     /**
      * Базовое распределение студентов по универам, студенты просматривают универы, начиная с самого престижного,
      * проверяют наличие интересующего УГСН, смотрят какие ЕГЭ необходимы и сравнивают со своими результатами
-     * Заявления можно подать не более чем в 5 вузов, не более чем на 10 УГСН
+     * Заявления можно подать не более чем в n заданных вузов, не более чем на 10 УГСН
      */
     private fun firstStep() {
         val messageFirstStep = "||| Начало первого этапа моделирования |||\n"
+
+        val params = "Параметры моделирования: максимальное число ВУЗов: ${modellerDTO.countVUZ} " +
+                "Число абитуриентов: ${modellerDTO.countStudent} " +
+                "Год моделирования: ${modellerDTO.year} " +
+                "Длительность этапа с копия аттестатов: ${modellerDTO.durationCopy} " +
+                "Длительность этапа с оригиналами аттестатов: ${modellerDTO.durationOriginal} "
+
+        println(params)
+        restTemplate.postForEntity(uri, ModellerLog(params), String::class.java)
 
         if (logToggle != 0) {
             println(messageFirstStep)
@@ -86,8 +96,8 @@ class Modeller(limitStudent: Int = 100000, year: Int, bufferedWriter: BufferedWr
 
             for (university in universities.values) {
 
-                // Доки можно класть максимум в 5 универов!
-                if (student.getCountUniversities() < 5) {
+                // Доки можно класть максимум в ns универов!
+                if (student.getCountUniversities() < modellerDTO.countVUZ) {
                     val informationYGSNCollection = university.getInformationYGSNMap().values
 
                     val universityId = university.universityData.universityId
@@ -140,7 +150,7 @@ class Modeller(limitStudent: Int = 100000, year: Int, bufferedWriter: BufferedWr
                         }
                     }
                 } else {
-                    val messageMaxUniversities = "Абитуриент $studentId может подать заявление максимум в 5 универов!\n"
+                    val messageMaxUniversities = "Абитуриент $studentId может подать заявление максимум в ${modellerDTO.countVUZ} ВУЗовы!\n"
 
                     if (logToggle != 0) {
                         println(messageMaxUniversities)
@@ -245,7 +255,7 @@ class Modeller(limitStudent: Int = 100000, year: Int, bufferedWriter: BufferedWr
                         if (numbersBudget < countRequest) {
 
                             // Если лимит на кол-во вузов у студента превышен, то забираем доки по данному УГСН
-                            if (student.getCountUniversities() == 5) {
+                            if (student.getCountUniversities() == modellerDTO.countVUZ) {
 
                                 // Если в данном универе заявление только на один УГСН
                                 // тогда можно спокойно убирать это заявление
@@ -382,7 +392,7 @@ class Modeller(limitStudent: Int = 100000, year: Int, bufferedWriter: BufferedWr
         val isChangeRegion = student.studentData.change
 
         // Число универов, в которые можно подавать заявления
-        val countAvailableUniversities = 5 - student.getCountUniversities()
+        val countAvailableUniversities = modellerDTO.countVUZ - student.getCountUniversities()
 
         // Если еще не нашли новые места для всех УГСН
         if (ygsnList.isNotEmpty()) {

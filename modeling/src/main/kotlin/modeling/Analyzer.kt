@@ -125,11 +125,11 @@ class Analyzer(year: Int, val logToggle: Int) {
             if (countStudents != 0) {
                 val messageUniversity = "ID университета: ${resultUniversity.universityId} " +
                         "| Название: $universityName " +
-                        "| Полученный средний балл: ${resultUniversity.averageAllBudgetScoreUniversity} " +
-                        "| Прошлый средний балл: $prevAverageAllStudentsEGEUniversity " +
-                        "| Изменение среднего балла: ${resultUniversity.averageAllBudgetScoreUniversity - prevAverageAllStudentsEGEUniversity} " +
-                        "| Минимальный балл: ${resultUniversity.minScore} " +
-                        "| Максимальный балл ${resultUniversity.maxScore} " +
+                        "| Полученный средний балл:  ${String.format("%.1f", resultUniversity.averageAllBudgetScoreUniversity)} " +
+                        "| Прошлый средний балл:  ${String.format("%.1f", prevAverageAllStudentsEGEUniversity)} " +
+                        "| Изменение среднего балла: ${String.format("%.1f", resultUniversity.averageAllBudgetScoreUniversity - prevAverageAllStudentsEGEUniversity)} " +
+                        "| Минимальный балл: ${String.format("%.1f", resultUniversity.minScore)} " +
+                        "| Максимальный балл ${String.format("%.1f", resultUniversity.maxScore)} " +
                         "| Кол-во поступивших: $countStudents\n"
 
                 averageScoreOfRussia += resultUniversity.averageAllBudgetScoreUniversity
@@ -161,11 +161,11 @@ class Analyzer(year: Int, val logToggle: Int) {
                     val prevAverageAllStudentsEGEYGSN = universityInformation.getInformationYGSNMap()[ygsnId]!!.ygsnData.averageScoreBudgetEGE
 
                     val messageYGSN = "ID УГСН: ${resultYGSN.ygsnId} " +
-                            "| Полученный средний балл: ${resultYGSN.averageScore} " +
-                            "| Прошлый средний балл: $prevAverageAllStudentsEGEYGSN " +
-                            "| Изменение среднего балла: ${resultYGSN.averageScore - prevAverageAllStudentsEGEYGSN} " +
-                            "| Минимальный балл: ${resultYGSN.minScore} " +
-                            "| Максимальный балл: ${resultYGSN.maxScore} " +
+                            "| Полученный средний балл: ${String.format("%.1f", resultYGSN.averageScore)} " +
+                            "| Прошлый средний балл: ${String.format("%.1f", prevAverageAllStudentsEGEYGSN)} " +
+                            "| Изменение среднего балла: ${String.format("%.1f", resultYGSN.averageScore - prevAverageAllStudentsEGEYGSN)} " +
+                            "| Минимальный балл: ${String.format("%.1f", resultYGSN.minScore)} " +
+                            "| Максимальный балл: ${String.format("%.1f", resultYGSN.maxScore)} " +
                             "| Кол-во поступивших: ${resultYGSN.countStudents}\n"
 
 

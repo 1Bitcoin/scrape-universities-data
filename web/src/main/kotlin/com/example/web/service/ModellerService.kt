@@ -1,20 +1,21 @@
 package com.example.web.service
 
-import main.kotlin.main
+import dto.contoller.Generating
+import dto.contoller.Modelling
+import main.kotlin.Modeller
 import org.springframework.stereotype.Service
-import java.io.File
-import java.io.FileWriter
 
 
 @Service
 class ModellerService {
     final var FILE_PATH = "D:\\logs.txt"
+    val modeller = Modeller()
 
-    fun startModelling(logToggle: Int) {
-        main("modelling", logToggle)
+    fun startModelling(modellingDTO: Modelling, logToggle: Int) {
+        modeller.startModeling(modellingDTO, logToggle)
     }
 
-    fun startGenerateStudent(logToggle: Int) {
-        main("generating", logToggle)
+    fun startGenerateStudent(generatingDTO: Generating, logToggle: Int) {
+        modeller.generateStudents(generatingDTO)
     }
 }

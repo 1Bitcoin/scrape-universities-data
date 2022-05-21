@@ -77,7 +77,7 @@
 
                 <div class="col-sm-4 col-md-6">
 
-                    <form class="signup-form" id="generate-form">
+                    <form class="signup-form" id="generate-form" th:action="@{/generating}">
 
                         <h2 class="text-center">Генерация агентов</h2>
 
@@ -85,42 +85,56 @@
 
                         <div class="form-group">
 
-                            <h5 class="text-center">Процентные категории агентов</h5>
+                            <h5 class="text-center">Численность категории агентов в процентах</h5>
 
-                            <input type="text" name="fail_student" class="form-control" placeholder="Процент не сдавших ЕГЭ абитуриентов">
+                            <input type="text" name="fail_student" class="form-control" placeholder="Процент не сдавших ЕГЭ абитуриентов" id="procentFail">
                             <h5 class="text-center"></h5>
 
-                            <input type="text" name="fail_student" class="form-control" placeholder="Процент абитуриентов со средним результатом">
+                            <input type="text" name="fail_student" class="form-control" placeholder="Процент абитуриентов со средним результатом" id="procentMiddle">
                             <h5 class="text-center"></h5>
 
-                            <input type="text" name="fail_student" class="form-control" placeholder="Процент абитуриентов с хорошим результатом">
+                            <input type="text" name="fail_student" class="form-control" placeholder="Процент абитуриентов с хорошим результатом" id="procentSenior">
                             <h5 class="text-center"></h5>
 
-                            <input type="text" name="fail_student" class="form-control" placeholder="Процент абитуриентов с отличным результатом">
+                            <input type="text" name="fail_student" class="form-control" placeholder="Процент абитуриентов с отличным результатом" id="procentGenius">
 
                             <h5 class="text-center">Диапазон баллов категорий</h5>
 
-                            <input type="text" class="form-control" placeholder="Диапазон баллов получивших средний результат">
+                            <input type="text" class="form-control" placeholder="Диапазон баллов получивших средний результат" id="rangeMiddleScore">
                             <h5 class="text-center"></h5>
 
-                            <input type="text" class="form-control" placeholder="Диапазон баллов получивших хороший результат">
+                            <input type="text" class="form-control" placeholder="Диапазон баллов получивших хороший результат" id="rangeSeniorScore">
                             <h5 class="text-center"></h5>
 
-                            <input type="text" class="form-control" placeholder="Диапазон баллов получивших отличный результат">
+                            <input type="text" class="form-control" placeholder="Диапазон баллов получивших отличный результат" id="rangeGeniusScore">
+
+                            <h5 class="text-center">Процент готовых к смене места жительства агентов для каждой категории</h5>
+
+                            <input type="text" class="form-control" placeholder="Процент меняющих место, получивших средний результат" id="procentMiddleChange">
+                            <h5 class="text-center"></h5>
+
+                            <input type="text" class="form-control" placeholder="Процент меняющих место, получивших хороший результат" id="procentSeniorChange">
+                            <h5 class="text-center"></h5>
+
+                            <input type="text" class="form-control" placeholder="Процент меняющих место, получивших отличный результат" id="procentGeniusChange">
+
+                            <h5 class="text-center">Максимальное число УГСН, на которые можно подавать заявления</h5>
+                            <input type="text" class="form-control" placeholder="Максимальное число УГСН" id="countYGSN">
+                            <h5 class="text-center"></h5>
 
                             <h5 class="text-center">Минимальные баллы по каждому предмету ЕГЭ</h5>
 
-                            <input type="text" class="form-control" placeholder="Русский язык">
-                            <input type="text" class="form-control" placeholder="Математика">
-                            <input type="text" class="form-control" placeholder="Физика">
-                            <input type="text" class="form-control" placeholder="Химия">
-                            <input type="text" class="form-control" placeholder="Биология">
-                            <input type="text" class="form-control" placeholder="Обществознание">
-                            <input type="text" class="form-control" placeholder="Информатика и ИКТ">
-                            <input type="text" class="form-control" placeholder="История">
-                            <input type="text" class="form-control" placeholder="География">
-                            <input type="text" class="form-control" placeholder="Иностранный язык">
-                            <input type="text" class="form-control" placeholder="Литература">
+                            <input type="text" class="form-control" placeholder="Русский язык" id="minScoreRus">
+                            <input type="text" class="form-control" placeholder="Математика" id="minScoreMath">
+                            <input type="text" class="form-control" placeholder="Физика" id="minScorePhys">
+                            <input type="text" class="form-control" placeholder="Химия" id="minScoreChem">
+                            <input type="text" class="form-control" placeholder="Биология" id="minScoreBio">
+                            <input type="text" class="form-control" placeholder="Обществознание" id="minScoreSoc">
+                            <input type="text" class="form-control" placeholder="Информатика и ИКТ" id="minScoreInf">
+                            <input type="text" class="form-control" placeholder="История" id="minScoreHis">
+                            <input type="text" class="form-control" placeholder="География" id="minScoreGeo">
+                            <input type="text" class="form-control" placeholder="Иностранный язык" id="minScoreEn">
+                            <input type="text" class="form-control" placeholder="Литература" id="minScoreLit">
 
                         </div>
 
@@ -137,7 +151,7 @@
 
                 <div class="col-sm-4 col-md-6">
 
-                    <form class="signup-form" id="search-form">
+                    <form class="signup-form" id="search-form" th:action="@{/modelling}">
 
                         <h2 class="text-center">Параметры моделирования</h2>
 
@@ -146,16 +160,20 @@
                         <div class="form-group">
 
                             <h5 class="text-center">Длительность этапа перераспределения заявлений с копией аттестата</h5>
-                            <input type="text" class="form-control" placeholder="Длительность этапа">
+                            <input type="text" class="form-control" placeholder="Длительность этапа" id="durationCopy">
                             <h5 class="text-center"></h5>
 
                             <h5 class="text-center">Длительность этапа поиска наилучшего места для оригинала аттестата</h5>
-                            <input type="text" class="form-control" placeholder="Длительность этапа">
+                            <input type="text" class="form-control" placeholder="Длительность этапа" id="durationOriginal">
                             <h5 class="text-center"></h5>
 
-                            <input type="text" class="form-control" placeholder="Год проведения моделирования">
+                            <input type="text" class="form-control" placeholder="Год проведения моделирования" id="year">
                             <h5 class="text-center"></h5>
-                            <input type="text" class="form-control" placeholder="Количество абитуриентов">
+
+                            <input type="text" class="form-control" placeholder="Количество абитуриентов" id="countStudent">
+
+                            <h5 class="text-center">Максимальное число ВУЗов, в которые можно подавать заявления</h5>
+                            <input type="text" class="form-control" placeholder="Максимальное число ВУЗов" id="countVUZ">
                             <h5 class="text-center"></h5>
 
                         </div>

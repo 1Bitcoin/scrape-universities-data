@@ -1,6 +1,6 @@
 package main.kotlin.generation.student
 
-enum class MinimalEGE(val minimalScore: Int) {
+enum class MinimalEGE(var minimalScore: Int) {
     RU(40),
     MATH(39),
     PHIS(39),

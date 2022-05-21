@@ -1,5 +1,6 @@
 package main.kotlin.generation.student
 
+import dto.contoller.Generating
 import main.kotlin.dto.ModellerLog
 import main.kotlin.dto.student.DistribStudentData
 import main.kotlin.dto.student.StudentData
@@ -12,18 +13,19 @@ import org.springframework.web.client.RestTemplate
 import java.net.URI
 import kotlin.random.Random
 
-class Generator {
+class Generator(var generatingDTO: Generating) {
     private val distribList: MutableList<DistribStudentData> = selectDistrib()
     private val mapEGE: MutableMap<Int, MutableSet<Int>> = mutableMapOf()
 
     private val executor: MyQueryExecutor = MyQueryExecutor()
 
-    val seniorRange = 70..80
-    val geniusRange = 80..100
+    val middleRange = stringToIntRange(generatingDTO.rangeMiddleScore)
+    val seniorRange = stringToIntRange(generatingDTO.rangeSeniorScore)
+    val geniusRange = stringToIntRange(generatingDTO.rangeGeniusScore)
 
-    val procentMiddleChange = 60
-    val procentSeniorChange = 80
-    val procentGeniusChange = 100
+    val procentMiddleChange = generatingDTO.procentMiddleChange
+    val procentSeniorChange = generatingDTO.procentSeniorChange
+    val procentGeniusChange = generatingDTO.procentGeniusChange
 
     val restTemplate = RestTemplate()
 
@@ -31,9 +33,6 @@ class Generator {
     val uri = URI(baseUrl)
 
     fun generateStudent() {
-
-        // Заглушка
-        val emptyRange: IntRange = 1..0
 
         // Заполняем мапу вида: ид угсн-set ид егэ
         val start0 = "Получение из БД списка допустимых предметов ЕГЭ для каждого УГСН"
@@ -65,6 +64,12 @@ class Generator {
 
             val count100Ball = distrib.count100Ball
             val countParticipant = distrib.countParticipant
+
+            // Установка считанных значений
+            setDistribScore()
+
+            // Установка минимальных баллов по ЕГЭ, если они заданы
+            setMinimalScores()
 
             val countFail = countVYP * DistribScore.FAIL.procent
             val countMiddle = (countVYP * DistribScore.MIDDLE.procent / 100)
@@ -146,7 +151,7 @@ class Generator {
 
             for (i in 1..countMiddle) {
                 val currentStudentId = insertedStudentIdList[currentIndex]
-                createFullInformation(currentStudentId.toInt(), emptyRange, egeList, ygsnList)
+                createFullInformation(currentStudentId.toInt(), middleRange, egeList, ygsnList, generatingDTO.countYGSN)
                 currentIndex++
             }
 
@@ -156,7 +161,7 @@ class Generator {
 
             for (j in 1..countSenior) {
                 val currentStudentId = insertedStudentIdList[currentIndex]
-                createFullInformation(currentStudentId.toInt(), seniorRange, egeList, ygsnList)
+                createFullInformation(currentStudentId.toInt(), seniorRange, egeList, ygsnList, generatingDTO.countYGSN)
                 currentIndex++
             }
 
@@ -166,7 +171,7 @@ class Generator {
 
             for (k in 1..countGenius) {
                 val currentStudentId = insertedStudentIdList[currentIndex]
-                createFullInformation(currentStudentId.toInt(), geniusRange, egeList, ygsnList)
+                createFullInformation(currentStudentId.toInt(), geniusRange, egeList, ygsnList, generatingDTO.countYGSN)
                 currentIndex++
             }
 
@@ -191,8 +196,75 @@ class Generator {
         }
     }
 
+    private fun setDistribScore() {
+        DistribScore.FAIL.procent = generatingDTO.procentFail
+        DistribScore.MIDDLE.procent = generatingDTO.procentMiddle
+        DistribScore.SENIOR.procent = generatingDTO.procentSenior
+        DistribScore.GENIUS.procent = generatingDTO.procentGenius
+    }
+
+    private fun setMinimalScores() {
+        if (generatingDTO.minScoreRus != null) {
+            MinimalEGE.RU.minimalScore = generatingDTO.minScoreRus
+        }
+
+        if (generatingDTO.minScoreBio != null) {
+            MinimalEGE.BIO.minimalScore = generatingDTO.minScoreBio
+        }
+
+        if (generatingDTO.minScoreEn != null) {
+            MinimalEGE.EN.minimalScore = generatingDTO.minScoreEn
+        }
+
+        if (generatingDTO.minScoreHis != null) {
+            MinimalEGE.HISTORY.minimalScore = generatingDTO.minScoreHis
+        }
+
+        if (generatingDTO.minScoreSoc != null) {
+            MinimalEGE.SOCIAL.minimalScore = generatingDTO.minScoreSoc
+        }
+
+        if (generatingDTO.minScoreChem != null) {
+            MinimalEGE.CHEM.minimalScore = generatingDTO.minScoreChem
+        }
+
+        if (generatingDTO.minScoreGeo != null) {
+            MinimalEGE.GEO.minimalScore = generatingDTO.minScoreGeo
+        }
+
+        if (generatingDTO.minScoreInf != null) {
+            MinimalEGE.INFORMATION.minimalScore = generatingDTO.minScoreInf
+        }
+
+        if (generatingDTO.minScoreLit != null) {
+            MinimalEGE.LITER.minimalScore = generatingDTO.minScoreLit
+        }
+
+        if (generatingDTO.minScoreMath != null) {
+            MinimalEGE.MATH.minimalScore = generatingDTO.minScoreMath
+        }
+
+        if (generatingDTO.minScorePhys != null) {
+            MinimalEGE.PHIS.minimalScore = generatingDTO.minScorePhys
+        }
+
+    }
+
+    private fun stringToIntRange(duration: String): IntRange {
+        val elems = duration.split("-")
+
+        val start = elems[0].toIntOrNull()
+        val end = elems[1].toInt()
+
+        if (start == null) {
+            return end..0
+        }
+
+        return start..end
+    }
+
     private fun createFullInformation(studentId: Int, range: IntRange, egeList: MutableList<StudentEGEData>,
-                                      ygsnList: MutableList<StudentYGSNData>) {
+                                      ygsnList: MutableList<StudentYGSNData>, countYGSN: Int) {
         // Создаем сданные ЕГЭ и их результаты для студента
         val listStudentEGEData = buildStudent(studentId, range)
 
@@ -211,25 +283,22 @@ class Generator {
 
         // !!! Заглушка !!!
         // из всех подходящих по сданным ЕГЭ УГСН выбираем 3 случайных (аля 3 направления)
-        val resultListYGSNForStudent = getThreeMostActualYGSN(listStudentYGSNData)
+        val resultListYGSNForStudent = getThreeMostActualYGSN(listStudentYGSNData, countYGSN)
 
         // Сохраняем в список
         ygsnList.addAll(resultListYGSNForStudent)
     }
 
-    private fun getThreeMostActualYGSN(listStudentYGSNData: MutableList<StudentYGSNData>): MutableList<StudentYGSNData> {
-        val resultListYGSNForStudent = mutableListOf<StudentYGSNData>()
+    private fun getThreeMostActualYGSN(listStudentYGSNData: MutableList<StudentYGSNData>, countYGSN: Int): MutableList<StudentYGSNData> {
+        var currentCountYGSN = countYGSN
 
-        for (i in 1..3) {
-            var randomElement = listStudentYGSNData.random()
-
-            // Ищем элемент(ид угсн), которых еще не записывали в ответ
-            while (resultListYGSNForStudent.contains(randomElement)) {
-                randomElement = listStudentYGSNData.random()
-            }
-            resultListYGSNForStudent.add(randomElement)
+        if (countYGSN > listStudentYGSNData.size) {
+            currentCountYGSN = listStudentYGSNData.size
         }
-        return resultListYGSNForStudent
+
+        listStudentYGSNData.take(currentCountYGSN)
+
+        return listStudentYGSNData.take(currentCountYGSN) as MutableList<StudentYGSNData>
     }
 
     private fun getActualYGSN(setEGEId: MutableSet<Int>, studentId: Int): MutableList<StudentYGSNData> {
@@ -304,7 +373,7 @@ class Generator {
             studentId = currentStudentId
             egeId = 1
             score = if (intervalScore.isEmpty()) {
-                val currentScore = MinimalEGE.RU.minimalScore..70
+                val currentScore = MinimalEGE.RU.minimalScore..intervalScore.start
                 currentScore.random()
             } else {
                 intervalScore.random()
@@ -316,7 +385,7 @@ class Generator {
             studentId = currentStudentId
             egeId = 2
             score = if (intervalScore.isEmpty()) {
-                val currentScore = MinimalEGE.MATH.minimalScore..70
+                val currentScore = MinimalEGE.MATH.minimalScore..intervalScore.start
                 currentScore.random()
             } else {
                 intervalScore.random()
@@ -334,7 +403,7 @@ class Generator {
             studentId = currentStudentId
             egeId = 10
             score = if (intervalScore.isEmpty()) {
-                val currentScore = MinimalEGE.EN.minimalScore..70
+                val currentScore = MinimalEGE.EN.minimalScore..intervalScore.start
                 currentScore.random()
             } else {
                 intervalScore.random()
@@ -346,7 +415,7 @@ class Generator {
             studentId = currentStudentId
             egeId = 15
             score = if (intervalScore.isEmpty()) {
-                val currentScore = MinimalEGE.LITER.minimalScore..70
+                val currentScore = MinimalEGE.LITER.minimalScore..intervalScore.start
                 currentScore.random()
             } else {
                 intervalScore.random()
@@ -366,7 +435,7 @@ class Generator {
             studentId = currentStudentId
             egeId = 5
             score = if (intervalScore.isEmpty()) {
-                val currentScore = MinimalEGE.HISTORY.minimalScore..70
+                val currentScore = MinimalEGE.HISTORY.minimalScore..intervalScore.start
                 currentScore.random()
             } else {
                 intervalScore.random()
@@ -378,7 +447,7 @@ class Generator {
             studentId = currentStudentId
             egeId = 6
             score = if (intervalScore.isEmpty()) {
-                val currentScore = MinimalEGE.SOCIAL.minimalScore..70
+                val currentScore = MinimalEGE.SOCIAL.minimalScore..intervalScore.start
                 currentScore.random()
             } else {
                 intervalScore.random()
@@ -398,7 +467,7 @@ class Generator {
             studentId = currentStudentId
             egeId = 4
             score = if (intervalScore.isEmpty()) {
-                val currentScore = MinimalEGE.CHEM.minimalScore..70
+                val currentScore = MinimalEGE.CHEM.minimalScore..intervalScore.start
                 currentScore.random()
             } else {
                 intervalScore.random()
@@ -410,7 +479,7 @@ class Generator {
             studentId = currentStudentId
             egeId = 8
             score = if (intervalScore.isEmpty()) {
-                val currentScore = MinimalEGE.BIO.minimalScore..70
+                val currentScore = MinimalEGE.BIO.minimalScore..intervalScore.start
                 currentScore.random()
             } else {
                 intervalScore.random()
@@ -430,7 +499,7 @@ class Generator {
             studentId = currentStudentId
             egeId = 7
             score = if (intervalScore.isEmpty()) {
-                val currentScore = MinimalEGE.INFORMATION.minimalScore..70
+                val currentScore = MinimalEGE.INFORMATION.minimalScore..intervalScore.start
                 currentScore.random()
             } else {
                 intervalScore.random()
@@ -449,7 +518,7 @@ class Generator {
             studentId = currentStudentId
             egeId = 3
             score = if (intervalScore.isEmpty()) {
-                val currentScore = MinimalEGE.PHIS.minimalScore..70
+                val currentScore = MinimalEGE.PHIS.minimalScore..intervalScore.start
                 currentScore.random()
             } else {
                 intervalScore.random()
@@ -468,7 +537,7 @@ class Generator {
             studentId = currentStudentId
             egeId = 3
             score = if (intervalScore.isEmpty()) {
-                val currentScore = MinimalEGE.PHIS.minimalScore..70
+                val currentScore = MinimalEGE.PHIS.minimalScore..intervalScore.start
                 currentScore.random()
             } else {
                 intervalScore.random()
@@ -480,7 +549,7 @@ class Generator {
             studentId = currentStudentId
             egeId = 7
             score = if (intervalScore.isEmpty()) {
-                val currentScore = MinimalEGE.INFORMATION.minimalScore..70
+                val currentScore = MinimalEGE.INFORMATION.minimalScore..intervalScore.start
                 currentScore.random()
             } else {
                 intervalScore.random()
@@ -500,7 +569,7 @@ class Generator {
             studentId = currentStudentId
             egeId = 4
             score = if (intervalScore.isEmpty()) {
-                val currentScore = MinimalEGE.CHEM.minimalScore..70
+                val currentScore = MinimalEGE.CHEM.minimalScore..intervalScore.start
                 currentScore.random()
             } else {
                 intervalScore.random()
@@ -512,7 +581,7 @@ class Generator {
             studentId = currentStudentId
             egeId = 8
             score = if (intervalScore.isEmpty()) {
-                val currentScore = MinimalEGE.BIO.minimalScore..70
+                val currentScore = MinimalEGE.BIO.minimalScore..intervalScore.start
                 currentScore.random()
             } else {
                 intervalScore.random()
@@ -524,7 +593,7 @@ class Generator {
             studentId = currentStudentId
             egeId = 7
             score = if (intervalScore.isEmpty()) {
-                val currentScore = MinimalEGE.INFORMATION.minimalScore..70
+                val currentScore = MinimalEGE.INFORMATION.minimalScore..intervalScore.start
                 currentScore.random()
             } else {
                 intervalScore.random()
@@ -545,7 +614,7 @@ class Generator {
             studentId = currentStudentId
             egeId = 5
             score = if (intervalScore.isEmpty()) {
-                val currentScore = MinimalEGE.HISTORY.minimalScore..70
+                val currentScore = MinimalEGE.HISTORY.minimalScore..intervalScore.start
                 currentScore.random()
             } else {
                 intervalScore.random()
@@ -557,7 +626,7 @@ class Generator {
             studentId = currentStudentId
             egeId = 6
             score = if (intervalScore.isEmpty()) {
-                val currentScore = MinimalEGE.SOCIAL.minimalScore..70
+                val currentScore = MinimalEGE.SOCIAL.minimalScore..intervalScore.start
                 currentScore.random()
             } else {
                 intervalScore.random()
@@ -569,7 +638,7 @@ class Generator {
             studentId = currentStudentId
             egeId = 9
             score = if (intervalScore.isEmpty()) {
-                val currentScore = MinimalEGE.GEO.minimalScore..70
+                val currentScore = MinimalEGE.GEO.minimalScore..intervalScore.start
                 currentScore.random()
             } else {
                 intervalScore.random()
@@ -581,7 +650,7 @@ class Generator {
             studentId = currentStudentId
             egeId = 15
             score = if (intervalScore.isEmpty()) {
-                val currentScore = MinimalEGE.LITER.minimalScore..70
+                val currentScore = MinimalEGE.LITER.minimalScore..intervalScore.start
                 currentScore.random()
             } else {
                 intervalScore.random()

@@ -2,10 +2,13 @@ package com.example.web.controller;
 
 import com.example.web.model.AjaxResponseBody;
 import com.example.web.service.ModellerService;
+import dto.contoller.Generating;
+import dto.contoller.Modelling;
 import main.kotlin.dto.ModellerLog;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
@@ -66,18 +69,20 @@ public class Controller {
     }
 
     @PostMapping(value = "/modelling")
-    public ResponseEntity<AjaxResponseBody> startModelling() {
+    public ResponseEntity<AjaxResponseBody> startModelling(
+            @RequestBody Modelling modellingDTO) {
         AjaxResponseBody result = new AjaxResponseBody();
-        service.startModelling(0);
+        service.startModelling(modellingDTO, 0);
 
         return ResponseEntity.ok(result);
     }
 
     @PostMapping(value = "/generating")
-    public ResponseEntity<AjaxResponseBody> startGenerateStudent() {
+    public ResponseEntity<AjaxResponseBody> startGenerateStudent(
+            @RequestBody Generating generatingDTO
+            ) {
         AjaxResponseBody result = new AjaxResponseBody();
-        service.startGenerateStudent(0);
-
+        service.startGenerateStudent(generatingDTO, 0);
         return ResponseEntity.ok(result);
     }
 }

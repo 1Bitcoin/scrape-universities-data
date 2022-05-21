@@ -23,7 +23,11 @@ $(document).ready(function () {
 function ajax_submit_modelling() {
 
     var search = {}
-    search["username"] = 'test';
+    search["countVUZ"] = document.getElementById('countVUZ').value;
+    search["year"] = document.getElementById('year').value;
+    search["durationOriginal"] = document.getElementById('durationOriginal').value;
+    search["durationCopy"] = document.getElementById('durationCopy').value;
+    search["countStudent"] = document.getElementById('countStudent').value;
 
     $("#btn-search").prop("disabled", true);
 
@@ -62,7 +66,32 @@ function ajax_submit_modelling() {
 function ajax_submit_generate() {
 
     var search = {}
-    search["username"] = 'test';
+    search["procentFail"] = document.getElementById('procentFail').value;
+    search["procentMiddle"] = document.getElementById('procentMiddle').value;
+    search["procentSenior"] = document.getElementById('procentSenior').value;
+    search["procentGenius"] = document.getElementById('procentGenius').value;
+
+    search["rangeMiddleScore"] = document.getElementById('rangeMiddleScore').value;
+    search["rangeSeniorScore"] = document.getElementById('rangeSeniorScore').value;
+    search["rangeGeniusScore"] = document.getElementById('rangeGeniusScore').value;
+
+    search["procentMiddleChange"] = document.getElementById('procentMiddleChange').value;
+    search["procentSeniorChange"] = document.getElementById('procentSeniorChange').value;
+    search["procentGeniusChange"] = document.getElementById('procentGeniusChange').value;
+
+    search["countYGSN"] = document.getElementById('countYGSN').value;
+
+    search["minScoreRus"] = document.getElementById('minScoreRus').value;
+    search["minScoreMath"] = document.getElementById('minScoreMath').value;
+    search["minScorePhys"] = document.getElementById('minScorePhys').value;
+    search["minScoreChem"] = document.getElementById('minScoreChem').value;
+    search["minScoreBio"] = document.getElementById('minScoreBio').value;
+    search["minScoreSoc"] = document.getElementById('minScoreSoc').value;
+    search["minScoreInf"] = document.getElementById('minScoreInf').value;
+    search["minScoreHis"] = document.getElementById('minScoreHis').value;
+    search["minScoreGeo"] = document.getElementById('minScoreGeo').value;
+    search["minScoreEn"] = document.getElementById('minScoreEn').value;
+    search["minScoreLit"] = document.getElementById('minScoreLit').value;
 
     $("#btn-generate").prop("disabled", true);
 
