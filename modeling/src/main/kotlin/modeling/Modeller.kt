@@ -9,11 +9,11 @@ import java.net.URI
 import java.util.concurrent.CopyOnWriteArrayList
 
 
-class Modeller(var modellerDTO: Modelling, bufferedWriter: BufferedWriter, val logToggle: Int) {
+class Modeller(var modellerDTO: Modelling, bufferedWriter: BufferedWriter, val logToggle: Int, val port: Int) {
 
     val restTemplate = RestTemplate()
 
-    val baseUrl = "http://localhost:8080/logs"
+    val baseUrl = "http://localhost:$port/logs"
     val uri = URI(baseUrl)
 
     val countStudents = modellerDTO.countStudent
@@ -21,7 +21,7 @@ class Modeller(var modellerDTO: Modelling, bufferedWriter: BufferedWriter, val l
 
     val helper = ModelingHelper(countStudents, year)
 
-    val analyzer = Analyzer(year + 1, logToggle);
+    val analyzer = Analyzer(year + 1, logToggle, port);
 
     val students = helper.informationStudent
     val universities = helper.informationUniversityMap

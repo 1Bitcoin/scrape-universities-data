@@ -11,9 +11,9 @@ import java.io.BufferedWriter
 import java.net.URI
 import kotlin.math.round
 
-class Analyzer(year: Int, val logToggle: Int) {
+class Analyzer(year: Int, val logToggle: Int, val port: Int) {
     val restTemplate = RestTemplate()
-    val baseUrl = "http://localhost:8080/logs"
+    val baseUrl = "http://localhost:$port/logs"
     val uri = URI(baseUrl)
 
     var yearAnalyze = year

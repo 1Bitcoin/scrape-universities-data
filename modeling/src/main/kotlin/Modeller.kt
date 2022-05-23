@@ -8,12 +8,16 @@ import main.kotlin.dto.ModellerLog
 import main.kotlin.generation.student.Generator
 import main.kotlin.modeling.Modeller
 import org.jetbrains.exposed.sql.Database
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.web.client.RestTemplate
 import java.io.File
 import java.net.URI
 
 
 class Modeller() {
+
+    val port = 8081
+
     val dataAboutUniversity = setUniversityDataSource()
     val dataAboutUniversityYGSN = setUniversityYGSNDataSource()
 
@@ -35,10 +39,10 @@ class Modeller() {
 
         val restTemplate = RestTemplate()
 
-        val baseUrl = "http://localhost:8080/logs"
+        val baseUrl = "http://localhost:$port/logs"
         val uri = URI(baseUrl)
 
-        val generator = Generator(generatingDTO)
+        val generator = Generator(generatingDTO, port)
         generator.generateStudent()
 
         val generateMessage = "Генерация агентов окончена"
@@ -53,7 +57,7 @@ class Modeller() {
 
         val restTemplate = RestTemplate()
 
-        val baseUrl = "http://localhost:8080/logs"
+        val baseUrl = "http://localhost:$port/logs"
         val uri = URI(baseUrl)
 
         val bufferedWriter = File("D:\\logs.txt").bufferedWriter()
@@ -63,7 +67,7 @@ class Modeller() {
         if (logToggle != 0)
             restTemplate.postForEntity(uri, ModellerLog(startMessage), String::class.java)
 
-        val modeller = Modeller(modellerDTO, bufferedWriter, logToggle)
+        val modeller = Modeller(modellerDTO, bufferedWriter, logToggle, port)
 
         modeller.modeling()
 
