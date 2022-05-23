@@ -13,7 +13,7 @@ import org.springframework.web.client.RestTemplate
 import java.net.URI
 import kotlin.random.Random
 
-class Generator(var generatingDTO: Generating) {
+class Generator(var generatingDTO: Generating, val port: Int) {
     private val distribList: MutableList<DistribStudentData> = selectDistrib()
     private val mapEGE: MutableMap<Int, MutableSet<Int>> = mutableMapOf()
 
@@ -29,7 +29,7 @@ class Generator(var generatingDTO: Generating) {
 
     val restTemplate = RestTemplate()
 
-    val baseUrl = "http://localhost:8080/logs"
+    val baseUrl = "http://localhost:$port/logs"
     val uri = URI(baseUrl)
 
     fun generateStudent() {
