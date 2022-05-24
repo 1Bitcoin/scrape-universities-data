@@ -15,7 +15,11 @@ class ModellerService {
         modeller.startModeling(modellingDTO, logToggle)
     }
 
-    fun startGenerateStudent(generatingDTO: Generating, logToggle: Int) {
+    fun startGenerateStudent(generatingDTO: Generating) {
         modeller.generateStudents(generatingDTO)
+    }
+
+    fun deleteStudents() {
+        modeller.deleteStudents();
     }
 }

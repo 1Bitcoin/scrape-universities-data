@@ -7,7 +7,9 @@ import main.kotlin.datasource.setUniversityYGSNDataSource
 import main.kotlin.dto.ModellerLog
 import main.kotlin.generation.student.Generator
 import main.kotlin.modeling.Modeller
+import main.kotlin.ru.batch.executor.MyQueryExecutor
 import org.jetbrains.exposed.sql.Database
+import org.postgresql.core.QueryExecutor
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.web.client.RestTemplate
 import java.io.File
@@ -73,6 +75,22 @@ class Modeller() {
         modeller.modeling()
 
         bufferedWriter.close()
+    }
+
+    fun deleteStudents() {
+        val restTemplate = RestTemplate()
+
+        val baseUrl = "http://localhost:$port/logs"
+        val uri = URI(baseUrl)
+
+        val generateMessage = "Удаление агентов началось"
+        restTemplate.postForEntity(uri, ModellerLog(generateMessage), String::class.java)
+
+        val executor = MyQueryExecutor()
+        executor.deleteStudents()
+
+        val generateMessage1 = "Агенты были удалены"
+        restTemplate.postForEntity(uri, ModellerLog(generateMessage1), String::class.java)
     }
 }
 

@@ -187,19 +187,19 @@ class Analyzer(year: Int, val logToggle: Int, val port: Int) {
         averageScoreOfRussia /= countModellingUniversities
         averagePrevScoreOfRussia /= countModellingUniversities
 
-        println("Число университетов в моделировании $countModellingUniversities")
-
-        val statStudent = "Итого зачислено $statisticsCountStudent студентов"
-        println(statStudent)
-        restTemplate.postForEntity(uri, ModellerLog(statStudent), String::class.java)
-
-        val modellingScore = "Спрогнозированный средний балл по России $averageScoreOfRussia"
-        println(modellingScore)
-        restTemplate.postForEntity(uri, ModellerLog(modellingScore), String::class.java)
-
-
-        val realScore = "Реальный средний балл по России $averagePrevScoreOfRussia"
-        println(realScore)
-        restTemplate.postForEntity(uri, ModellerLog(realScore), String::class.java)
+//        println("Число университетов в моделировании $countModellingUniversities")
+//
+//        val statStudent = "Итого зачислено $statisticsCountStudent студентов"
+//        println(statStudent)
+//        restTemplate.postForEntity(uri, ModellerLog(statStudent), String::class.java)
+//
+//        val modellingScore = "Спрогнозированный средний балл по России $averageScoreOfRussia"
+//        println(modellingScore)
+//        restTemplate.postForEntity(uri, ModellerLog(modellingScore), String::class.java)
+//
+//
+//        val realScore = "Реальный средний балл по России $averagePrevScoreOfRussia"
+//        println(realScore)
+//        restTemplate.postForEntity(uri, ModellerLog(realScore), String::class.java)
     }
 }

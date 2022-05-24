@@ -53,7 +53,6 @@ public class Controller {
         emitters.add(sseEmitter);
 
         LOGGER.info("Controller exits");
-        LOGGER.info("DOCKER exits");
         return sseEmitter;
     }
 
@@ -73,7 +72,7 @@ public class Controller {
     public ResponseEntity<AjaxResponseBody> startModelling(
             @RequestBody Modelling modellingDTO) {
         AjaxResponseBody result = new AjaxResponseBody();
-        service.startModelling(modellingDTO, 0);
+        service.startModelling(modellingDTO, 1);
 
         return ResponseEntity.ok(result);
     }
@@ -83,7 +82,15 @@ public class Controller {
             @RequestBody Generating generatingDTO
             ) {
         AjaxResponseBody result = new AjaxResponseBody();
-        service.startGenerateStudent(generatingDTO, 0);
+        service.startGenerateStudent(generatingDTO);
         return ResponseEntity.ok(result);
+    }
+
+    @PostMapping(value = "/delete")
+    public ResponseEntity<AjaxResponseBody> startGenerateStudent() {
+        service.deleteStudents();
+
+        return ResponseEntity.ok(new AjaxResponseBody());
+
     }
 }

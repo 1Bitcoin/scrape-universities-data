@@ -20,6 +20,11 @@ class MyQueryExecutor {
         "qwerty"
     )
 
+    fun deleteStudents() {
+        val preparedStatement = connection.prepareStatement("truncate table student cascade")
+        preparedStatement.executeUpdate()
+    }
+
     fun selectFullInformationStudent(limit: Int): MutableList<InformationStudent> {
         val prepareStatement = connection.prepareStatement(
                 "select student.id," +
