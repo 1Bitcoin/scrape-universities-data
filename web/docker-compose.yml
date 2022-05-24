@@ -1,0 +1,28 @@
+version: '2'
+
+services:
+  app:
+    image: 'docker-spring-boot-postgres:latest'
+    ports:
+        - 8080:8080
+    build:
+      context: .
+    container_name: app
+    depends_on:
+      - localhost
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5433/postgres
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=qwerty
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+
+  localhost:
+    image: 'postgres:13.1-alpine'
+    ports:
+      - 5443:5443
+    container_name: localhost
+    volumes:
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=qwerty
