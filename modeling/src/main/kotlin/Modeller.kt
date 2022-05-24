@@ -17,7 +17,7 @@ import java.net.URI
 class Modeller() {
 
     val port = 8080
-    val portDB = 5443
+    val portDB = 5432
 
     val dataAboutUniversity = setUniversityDataSource()
     val dataAboutUniversityYGSN = setUniversityYGSNDataSource()
@@ -34,7 +34,7 @@ class Modeller() {
 
     fun generateStudents(generatingDTO: Generating) {
         Database.connect(
-            "jdbc:postgresql://localhost:$portDB/postgres",
+            "jdbc:postgresql://db:$portDB/postgres",
             driver = "org.postgresql.Driver", user = "postgres", password = "qwerty"
         )
 
@@ -52,7 +52,7 @@ class Modeller() {
 
     fun startModeling(modellerDTO: Modelling, logToggle: Int) {
         Database.connect(
-            "jdbc:postgresql://localhost:$portDB/postgres",
+            "jdbc:postgresql://db:$portDB/postgres",
             driver = "org.postgresql.Driver", user = "postgres", password = "qwerty"
         )
 

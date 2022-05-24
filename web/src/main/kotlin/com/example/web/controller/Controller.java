@@ -53,6 +53,7 @@ public class Controller {
         emitters.add(sseEmitter);
 
         LOGGER.info("Controller exits");
+        LOGGER.info("DOCKER exits");
         return sseEmitter;
     }
 

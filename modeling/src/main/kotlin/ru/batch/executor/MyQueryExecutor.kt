@@ -15,7 +15,7 @@ import java.util.*
 
 class MyQueryExecutor {
     private val connection = DriverManager.getConnection(
-        "jdbc:postgresql://localhost:5432/postgres?reWriteBatchedInserts=true",
+        "jdbc:postgresql://db:5432/postgres?reWriteBatchedInserts=true",
         "postgres",
         "qwerty"
     )

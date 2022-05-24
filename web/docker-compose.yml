@@ -9,18 +9,18 @@ services:
       context: .
     container_name: app
     depends_on:
-      - localhost
+      - db
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5433/postgres
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/postgres
       - SPRING_DATASOURCE_USERNAME=postgres
       - SPRING_DATASOURCE_PASSWORD=qwerty
       - SPRING_JPA_HIBERNATE_DDL_AUTO=update
 
-  localhost:
+  db:
     image: 'postgres:13.1-alpine'
+    container_name: db
     ports:
-      - 5443:5443
-    container_name: localhost
+      - 5433:5432
     volumes:
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
     environment:
