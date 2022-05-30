@@ -79,7 +79,7 @@ class Generator(var generatingDTO: Generating, val port: Int) {
             // Создаем студентов в каждом регионе по числу выпускников
             var count = 1
             var isChange: Boolean
-            val start2 = "Создание студентов группы middle"
+            val start2 = "Создание абитуриентов группы middle"
             println(start2)
             restTemplate.postForEntity(uri, ModellerLog(start2), String::class.java)
 
@@ -98,7 +98,7 @@ class Generator(var generatingDTO: Generating, val port: Int) {
                 studentList.add(studentData)
             }
 
-            val start3 = "Создание студентов группы senior"
+            val start3 = "Создание абитуриентов группы senior"
             println(start3)
             restTemplate.postForEntity(uri, ModellerLog(start3), String::class.java)
 
@@ -118,7 +118,7 @@ class Generator(var generatingDTO: Generating, val port: Int) {
                 studentList.add(studentData)
             }
 
-            val start4 = "Создание студентов группы genius"
+            val start4 = "Создание абитуриентов группы genius"
             println(start4)
             restTemplate.postForEntity(uri, ModellerLog(start4), String::class.java)
 
@@ -138,14 +138,14 @@ class Generator(var generatingDTO: Generating, val port: Int) {
                 studentList.add(studentData)
             }
 
-            val start5 = "Сохранение студентов в БД. Количество студентов ${studentList.size}"
+            val start5 = "Сохранение абитуриентов в БД. Количество абитуриентов ${studentList.size}"
             println(start5)
             restTemplate.postForEntity(uri, ModellerLog(start5), String::class.java)
             insertedStudentIdList = executor.batchInsertStudent(studentList)
 
             var currentIndex = 0
 
-            val start6 = "Создание сданных ЕГЭ и интересующих УГСН для студентов группы middle"
+            val start6 = "Создание сданных ЕГЭ и интересующих УГСН для абитуриентов группы middle"
             println(start6)
             restTemplate.postForEntity(uri, ModellerLog(start6), String::class.java)
 
@@ -155,7 +155,7 @@ class Generator(var generatingDTO: Generating, val port: Int) {
                 currentIndex++
             }
 
-            val start7 = "Создание сданных ЕГЭ и интересующих УГСН для студентов группы senior"
+            val start7 = "Создание сданных ЕГЭ и интересующих УГСН для абитуриентов группы senior"
             println(start7)
             restTemplate.postForEntity(uri, ModellerLog(start7), String::class.java)
 
@@ -165,7 +165,7 @@ class Generator(var generatingDTO: Generating, val port: Int) {
                 currentIndex++
             }
 
-            val start8 = "Создание сданных ЕГЭ и интересующих УГСН для студентов группы genius"
+            val start8 = "Создание сданных ЕГЭ и интересующих УГСН для абитуриентов группы genius"
             println(start8)
             restTemplate.postForEntity(uri, ModellerLog(start8), String::class.java)
 

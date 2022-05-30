@@ -172,14 +172,14 @@ class MyQueryExecutor {
 
     fun selectInformationStudent(limit: Boolean): MutableList<InformationStudent> {
         val resultSet: ResultSet = if (limit) {
-            println("Получение первых 100 записей из БД с информацией о студентах, интересующих их УСГН и сданных ЕГЭ")
+            println("Получение первых 100 записей из БД с информацией о абитуриентах, интересующих их УСГН и сданных ЕГЭ")
 
             val prepareStatement = connection.prepareStatement("select * from student limit ?")
             prepareStatement.setInt(1, 100)
             prepareStatement.executeQuery()
 
         } else {
-            println("Получение полной информации из БД информации о студентах, интересующих их УГСН и сданных ЕГЭ")
+            println("Получение полной информации из БД информации о абитуриентах, интересующих их УГСН и сданных ЕГЭ")
             connection.prepareStatement("select * from student").executeQuery()
         }
 
@@ -209,7 +209,7 @@ class MyQueryExecutor {
         }
         val end = System.currentTimeMillis()
 
-        println("Информация о студентах получена!")
+        println("Информация о абитуриентах получена!")
         println("Получения информации заняло = " + (end - start) / 1000 + " секунд")
 
         return list

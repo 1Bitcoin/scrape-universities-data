@@ -38,7 +38,7 @@ class ModelingHelper(limitStudent: Int, year: Int) {
     }
 
     private fun sortInformationUniversity() {
-        println("Сортировка вузов по среднему баллу всех студентов")
+        println("Сортировка вузов по среднему баллу всех абитуриентов")
 
         informationUniversityMap = informationUniversityMap
             .toList()

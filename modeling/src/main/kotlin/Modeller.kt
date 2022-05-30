@@ -65,7 +65,7 @@ class Modeller() {
 
         val bufferedWriter = File("D:\\logs.txt").bufferedWriter()
 
-        val startMessage = "Получение информации о студентах и университетах"
+        val startMessage = "Получение информации о абитуриентах и университетах"
 
         if (logToggle != 0)
             restTemplate.postForEntity(uri, ModellerLog(startMessage), String::class.java)

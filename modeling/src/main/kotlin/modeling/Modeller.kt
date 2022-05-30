@@ -45,7 +45,7 @@ class Modeller(var modellerDTO: Modelling, bufferedWriter: BufferedWriter, val l
 
         val end = System.currentTimeMillis()
 
-        val messageModeling = "Время моделирования при $countStudents студентах = " + (end - start) / 1000 + " секунд\n"
+        val messageModeling = "Время моделирования при $countStudents абитуриентов = " + (end - start) / 1000 + " секунд\n"
         println(messageModeling)
 
         restTemplate.postForEntity(uri, ModellerLog(messageModeling), String::class.java)
@@ -138,7 +138,7 @@ class Modeller(var modellerDTO: Modelling, bufferedWriter: BufferedWriter, val l
                                 val messageSubmitFirstStep = "Абитуриент $studentId подал копию заявления в университет " +
                                         "${university.universityData.universityId} на УГСН ${informationYGSN.ygsnData.ygsnId} " +
                                         "| средний балл по УГСН: ${informationYGSN.ygsnData.averageScoreBudgetEGE} " +
-                                        "| средний балл студента: $averageScoreStudent\n"
+                                        "| средний балл абитуриента: ${String.format("%.1f", averageScoreStudent)}\n"
 
                                 if (logToggle != 0) {
                                     println(messageSubmitFirstStep)
@@ -150,7 +150,7 @@ class Modeller(var modellerDTO: Modelling, bufferedWriter: BufferedWriter, val l
                         }
                     }
                 } else {
-                    val messageMaxUniversities = "Абитуриент $studentId может подать заявление максимум в ${modellerDTO.countVUZ} ВУЗовы!\n"
+                    val messageMaxUniversities = "Абитуриент $studentId может подать заявление максимум в ${modellerDTO.countVUZ} ВУЗов!\n"
 
                     if (logToggle != 0) {
                         println(messageMaxUniversities)
