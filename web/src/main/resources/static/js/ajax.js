@@ -80,10 +80,6 @@ function ajax_submit_generate() {
     search["procentSenior"] = document.getElementById('procentSenior').value;
     search["procentGenius"] = document.getElementById('procentGenius').value;
 
-    search["rangeMiddleScore"] = document.getElementById('rangeMiddleScore').value;
-    search["rangeSeniorScore"] = document.getElementById('rangeSeniorScore').value;
-    search["rangeGeniusScore"] = document.getElementById('rangeGeniusScore').value;
-
     search["procentMiddleChange"] = document.getElementById('procentMiddleChange').value;
     search["procentSeniorChange"] = document.getElementById('procentSeniorChange').value;
     search["procentGeniusChange"] = document.getElementById('procentGeniusChange').value;

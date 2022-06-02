@@ -19,9 +19,9 @@ class Generator(var generatingDTO: Generating, val port: Int) {
 
     private val executor: MyQueryExecutor = MyQueryExecutor()
 
-    val middleRange = stringToIntRange(generatingDTO.rangeMiddleScore)
-    val seniorRange = stringToIntRange(generatingDTO.rangeSeniorScore)
-    val geniusRange = stringToIntRange(generatingDTO.rangeGeniusScore)
+    val middleRange = 70..0
+    val seniorRange = 71..80
+    val geniusRange = 81..100
 
     val procentMiddleChange = generatingDTO.procentMiddleChange
     val procentSeniorChange = generatingDTO.procentSeniorChange

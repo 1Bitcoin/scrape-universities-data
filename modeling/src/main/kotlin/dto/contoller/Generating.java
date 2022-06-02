@@ -7,10 +7,6 @@ public class Generating  {
     public Integer procentSenior;
     public Integer procentGenius;
 
-    public String rangeMiddleScore;
-    public String rangeSeniorScore;
-    public String rangeGeniusScore;
-
     public Integer procentMiddleChange;
     public Integer procentSeniorChange;
     public Integer procentGeniusChange;

@@ -136,15 +136,15 @@ class Analyzer(year: Int, val logToggle: Int, val port: Int) {
                 averagePrevScoreOfRussia += prevAverageAllStudentsEGEUniversity
                 countModellingUniversities += 1
 
-                if (topUniversity != 0) {
-                    println(messageUniversity)
-                    restTemplate.postForEntity(uri, ModellerLog(messageUniversity), String::class.java)
-                    topUniversity--
-                }
+//                if (topUniversity != 0) {
+//                    println(messageUniversity)
+//                    restTemplate.postForEntity(uri, ModellerLog(messageUniversity), String::class.java)
+//                    topUniversity--
+//                }
 
                 if (logToggle != 0) {
                     println(messageUniversity)
-                    writer.write(messageUniversity)
+                    //writer.write(messageUniversity)
                     restTemplate.postForEntity(uri, ModellerLog(messageUniversity), String::class.java)
                 }
 
@@ -152,7 +152,7 @@ class Analyzer(year: Int, val logToggle: Int, val port: Int) {
 
                 if (logToggle != 0) {
                     println(messageResultYGSN)
-                    writer.write(messageResultYGSN)
+                    //writer.write(messageResultYGSN)
                     restTemplate.postForEntity(uri, ModellerLog(messageResultYGSN), String::class.java)
                 }
 
@@ -169,14 +169,14 @@ class Analyzer(year: Int, val logToggle: Int, val port: Int) {
                             "| Кол-во поступивших: ${resultYGSN.countStudents}\n"
 
 
-                    if (topUniversity != 0) {
-                        println(messageYGSN)
-                        restTemplate.postForEntity(uri, ModellerLog(messageYGSN), String::class.java)
-                    }
+//                    if (topUniversity != 0) {
+//                        println(messageYGSN)
+//                        restTemplate.postForEntity(uri, ModellerLog(messageYGSN), String::class.java)
+//                    }
 
                     if (logToggle != 0) {
                         println(messageYGSN)
-                        writer.write(messageYGSN)
+                        //writer.write(messageYGSN)
                         restTemplate.postForEntity(uri, ModellerLog(messageYGSN), String::class.java)
                     }
                 }
